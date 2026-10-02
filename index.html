@@ -58,7 +58,7 @@
       margin-top: 4px;
     }
 
-    /* Pair Selection Selector Bar */
+    /* Pair & Duration Selector Bar */
     .selector-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -76,7 +76,7 @@
       align-items: center;
       gap: 12px;
       flex: 1;
-      min-width: 280px;
+      min-width: 250px;
     }
 
     label {
@@ -295,7 +295,7 @@
     <p>Pocket Option & Quotex OTC / Live Pairs (EMA + RSI + MACD Signal Confluence)</p>
   </header>
 
-  <!-- Asset / Pair Selector -->
+  <!-- Asset & Duration Selector Card -->
   <div class="selector-card">
     <div class="selector-group">
       <label for="pairSelect">Select Asset / Pair:</label>
@@ -356,6 +356,31 @@
           <option value="XAU/USD (GOLD)">XAU/USD (GOLD)</option>
           <option value="XAG/USD (SILVER)">XAG/USD (SILVER)</option>
         </optgroup>
+      </select>
+    </div>
+
+    <!-- Trade Expiration Duration Selector -->
+    <div class="selector-group">
+      <label for="durationSelect">Trade Duration:</label>
+      <select id="durationSelect" onchange="updateUI()">
+        <option value="3 SECONDS">3 Seconds</option>
+        <option value="5 SECONDS">5 Seconds</option>
+        <option value="7 SECONDS">7 Seconds</option>
+        <option value="9 SECONDS">9 Seconds</option>
+        <option value="12 SECONDS">12 Seconds</option>
+        <option value="15 SECONDS">15 Seconds</option>
+        <option value="17 SECONDS">17 Seconds</option>
+        <option value="20 SECONDS">20 Seconds</option>
+        <option value="30 SECONDS">30 Seconds</option>
+        <option value="45 SECONDS">45 Seconds</option>
+        <option value="60 SECONDS (1 MIN)" selected>1 Minute</option>
+        <option value="2 MINUTES">2 Minutes</option>
+        <option value="3 MINUTES">3 Minutes</option>
+        <option value="5 MINUTES">5 Minutes</option>
+        <option value="10 MINUTES">10 Minutes</option>
+        <option value="15 MINUTES">15 Minutes</option>
+        <option value="30 MINUTES">30 Minutes</option>
+        <option value="1 HOUR">1 Hour</option>
       </select>
     </div>
   </div>
@@ -490,7 +515,7 @@
   let assetMarketData = {};
   let autoInterval = null;
 
-  // Initialize all pairs with historical candles (220 bars each for accurate 200 EMA)
+  // Initialize all pairs with historical candles
   function initAllMarkets() {
     Object.keys(ASSET_DATABASE).forEach(assetKey => {
       const config = ASSET_DATABASE[assetKey];
@@ -603,6 +628,9 @@
     const isUpTrend = price > lastEma200 && lastEma9 > lastEma21;
     const isDownTrend = price < lastEma200 && lastEma9 < lastEma21;
 
+    // Get selected duration from dropdown
+    const selectedDuration = document.getElementById('durationSelect') ? document.getElementById('durationSelect').value : "60 SECONDS (1 MIN)";
+
     let signalResult = {
       asset: assetKey,
       signal: "NEUTRAL",
@@ -623,15 +651,15 @@
     // CALL Signal Condition
     if (isUpTrend && lastRsi > 50 && lastRsi < 70 && lastMacdHist > 0) {
       signalResult.signal = "CALL";
-      signalResult.duration = "60 SECONDS (1 MIN)";
-      signalResult.entryWindow = "BUY NOW within first 5s of candle";
+      signalResult.duration = selectedDuration;
+      signalResult.entryWindow = "BUY NOW within 3 sec time";
       signalResult.reason = "Bullish Confluence: Price > EMA200, Golden Cross (9/21), RSI (50-70), MACD Positive.";
     }
     // PUT Signal Condition
     else if (isDownTrend && lastRsi < 50 && lastRsi > 30 && lastMacdHist < 0) {
       signalResult.signal = "PUT";
-      signalResult.duration = "60 SECONDS (1 MIN)";
-      signalResult.entryWindow = "SELL NOW within first 5s of candle";
+      signalResult.duration = selectedDuration;
+      signalResult.entryWindow = "SELL NOW within 3 sec time";
       signalResult.reason = "Bearish Confluence: Price < EMA200, Death Cross (9/21), RSI (30-50), MACD Negative.";
     }
 
