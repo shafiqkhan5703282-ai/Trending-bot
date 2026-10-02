@@ -1,549 +1,725 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Signal Generator</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+<script>
+/* =========================================================
+   AI SIGNAL ENGINE
+   Technical-analysis engine:
+   EMA + RSI + MACD + Momentum + Candle Structure
+   Returns CALL / PUT / WAIT
+   ========================================================= */
 
-    body {
-      background-color: #0b0e14;
-      color: #ffffff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 15px;
-    }
+let signalTimer = null;
+let analysisTimer = null;
 
-    .app-container {
-      width: 100%;
-      max-width: 420px;
-      background-color: #121824;
-      border-radius: 16px;
-      border: 1px solid #1e293b;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
+const ENGINE = {
+    minConfidence: 68,
+    strongConfidence: 82,
 
-    /* Top Stats Bar */
-    .status-bar {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+    /* -----------------------------------------------------
+       Main signal function
+       ----------------------------------------------------- */
+    generateSignal(candles) {
 
-    .status-card {
-      background: #1a2234;
-      border: 1px solid #2a364f;
-      border-radius: 10px;
-      padding: 8px 5px;
-      text-align: center;
-    }
-
-    .status-card .label {
-      font-size: 10px;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-card .value {
-      font-size: 13px;
-      font-weight: bold;
-      margin-top: 4px;
-    }
-
-    .value.active { color: #22c55e; }
-    .value.cyan { color: #38bdf8; }
-
-    /* Form Section */
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      color: #94a3b8;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-
-    .form-control {
-      width: 100%;
-      background-color: #1a2234;
-      border: 1px solid #2a364f;
-      border-radius: 8px;
-      padding: 12px;
-      color: #ffffff;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .form-control:focus {
-      border-color: #3b82f6;
-    }
-
-    .btn-generate {
-      width: 100%;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: #ffffff;
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.2s ease;
-    }
-
-    .btn-generate:hover {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-    }
-
-    /* Analyzing Screen */
-    .screen {
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    .analyzing-box {
-      text-align: center;
-      padding: 20px 10px;
-    }
-
-    .pair-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #38bdf8;
-    }
-
-    .chart-box {
-      height: 140px;
-      background: #1a2234;
-      border-radius: 10px;
-      border: 1px solid #2a364f;
-      margin-bottom: 15px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-    }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 15px;
-    }
-
-    .metric-badge {
-      background: #1a2234;
-      padding: 6px;
-      border-radius: 6px;
-      font-size: 11px;
-      color: #22c55e;
-      border: 1px solid #22c55e33;
-    }
-
-    .status-text {
-      font-size: 12px;
-      color: #94a3b8;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-
-    /* Signal Card Screen */
-    .signal-card {
-      background: #1a2234;
-      border: 2px solid #22c55e;
-      border-radius: 14px;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .signal-direction {
-      font-size: 32px;
-      font-weight: 900;
-      color: #22c55e;
-      margin: 10px 0;
-      letter-spacing: 1px;
-    }
-
-    .signal-direction.put {
-      color: #ef4444;
-    }
-
-    .signal-details {
-      font-size: 13px;
-      color: #cbd5e1;
-      margin-bottom: 15px;
-      line-height: 1.6;
-    }
-
-    .time-badge {
-      background: #2563eb;
-      color: #fff;
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 15px;
-      margin-bottom: 15px;
-    }
-
-    .btn-secondary {
-      width: 100%;
-      background: #334155;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="app-container">
-    
-    <!-- Top Status Bar -->
-    <div class="status-bar">
-      <div class="status-card">
-        <div class="label">AI License</div>
-        <div class="value active">ACTIVE</div>
-      </div>
-      <div class="status-card">
-        <div class="label">AI Engine</div>
-        <div class="value cyan">ONLINE</div>
-      </div>
-      <div class="status-card">
-        <div class="label">Traders</div>
-        <div class="value">18.4K+</div>
-      </div>
-    </div>
-
-    <!-- MAIN FORM SCREEN -->
-    <div id="formScreen" class="screen active">
-
-      <div class="form-group">
-        <label>BROKER</label>
-        <select id="brokerSelect" class="form-control">
-          <option value="Quotex">Quotex</option>
-          <option value="Pocket Option">Pocket Option</option>
-          <option value="IQ Option">IQ Option</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>MARKET TYPE</label>
-        <select id="marketSelect" class="form-control">
-          <option value="OTC Market">OTC Market</option>
-          <option value="Real Market">Real Market</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>CURRENCY PAIR</label>
-        <select id="pairSelect" class="form-control">
-
-          <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
-          <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
-          <option value="AUD/CHF (OTC)">AUD/CHF (OTC)</option>
-          <option value="AUD/JPY (OTC)">AUD/JPY (OTC)</option>
-          <option value="AUD/NZD (OTC)">AUD/NZD (OTC)</option>
-          <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
-
-          <option value="CAD/CHF (OTC)">CAD/CHF (OTC)</option>
-          <option value="CAD/JPY (OTC)">CAD/JPY (OTC)</option>
-
-          <option value="CHF/JPY (OTC)">CHF/JPY (OTC)</option>
-          <option value="CHF/NOK (OTC)">CHF/NOK (OTC)</option>
-
-          <option value="EUR/CHF (OTC)">EUR/CHF (OTC)</option>
-          <option value="EUR/GBP (OTC)">EUR/GBP (OTC)</option>
-          <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
-          <option value="EUR/NZD (OTC)">EUR/NZD (OTC)</option>
-          <option value="EUR/TRY (OTC)">EUR/TRY (OTC)</option>
-          <option value="EUR/RUB (OTC)">EUR/RUB (OTC)</option>
-          <option value="EUR/HUF (OTC)">EUR/HUF (OTC)</option>
-
-          <option value="GBP/AUD (OTC)">GBP/AUD (OTC)</option>
-          <option value="GBP/JPY (OTC)">GBP/JPY (OTC)</option>
-          <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
-
-          <option value="NZD/JPY (OTC)">NZD/JPY (OTC)</option>
-          <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
-
-          <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
-          <option value="USD/BDT (OTC)">USD/BDT (OTC)</option>
-          <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
-          <option value="USD/CAD (OTC)">USD/CAD (OTC)</option>
-          <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
-          <option value="USD/CLP (OTC)">USD/CLP (OTC)</option>
-          <option value="USD/CNH (OTC)">USD/CNH (OTC)</option>
-          <option value="USD/COP (OTC)">USD/COP (OTC)</option>
-          <option value="USD/DZD (OTC)">USD/DZD (OTC)</option>
-          <option value="USD/EGP (OTC)">USD/EGP (OTC)</option>
-          <option value="USD/IDR (OTC)">USD/IDR (OTC)</option>
-          <option value="USD/INR (OTC)">USD/INR (OTC)</option>
-          <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
-          <option value="USD/MYR (OTC)">USD/MYR (OTC)</option>
-          <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
-          <option value="USD/PHP (OTC)">USD/PHP (OTC)</option>
-          <option value="USD/RUB (OTC)">USD/RUB (OTC)</option>
-          <option value="USD/SGD (OTC)">USD/SGD (OTC)</option>
-          <option value="USD/THB (OTC)">USD/THB (OTC)</option>
-          <option value="USD/TRY (OTC)">USD/TRY (OTC)</option>
-          <option value="USD/VND (OTC)">USD/VND (OTC)</option>
-
-          <option value="AED/CNY (OTC)">AED/CNY (OTC)</option>
-          <option value="BHD/CNY (OTC)">BHD/CNY (OTC)</option>
-          <option value="JOD/CNY (OTC)">JOD/CNY (OTC)</option>
-          <option value="OMR/CNY (OTC)">OMR/CNY (OTC)</option>
-          <option value="QAR/CNY (OTC)">QAR/CNY (OTC)</option>
-          <option value="SAR/CNY (OTC)">SAR/CNY (OTC)</option>
-
-          <option value="KES/USD (OTC)">KES/USD (OTC)</option>
-          <option value="LBP/USD (OTC)">LBP/USD (OTC)</option>
-          <option value="MAD/USD (OTC)">MAD/USD (OTC)</option>
-          <option value="NGN/USD (OTC)">NGN/USD (OTC)</option>
-          <option value="TND/USD (OTC)">TND/USD (OTC)</option>
-          <option value="UAH/USD (OTC)">UAH/USD (OTC)</option>
-          <option value="YER/USD (OTC)">YER/USD (OTC)</option>
-          <option value="ZAR/USD (OTC)">ZAR/USD (OTC)</option>
-
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>EXPIRY TIMER</label>
-        <select id="timerSelect" class="form-control">
-
-          <option value="3">3s</option>
-          <option value="7">7s</option>
-          <option value="9">9s</option>
-          <option value="11">11s</option>
-          <option value="14">14s</option>
-          <option value="17">17s</option>
-          <option value="20">20s</option>
-          <option value="24">24s</option>
-          <option value="27">27s</option>
-          <option value="30">30s</option>
-
-          <option value="60">1 Min</option>
-          <option value="120">2 Min</option>
-          <option value="180">3 Min</option>
-          <option value="240">4 Min</option>
-          <option value="300">5 Min</option>
-          <option value="360">6 Min</option>
-          <option value="420">7 Min</option>
-          <option value="480">8 Min</option>
-          <option value="540">9 Min</option>
-          <option value="600">10 Min</option>
-          <option value="660">11 Min</option>
-          <option value="720">12 Min</option>
-          <option value="780">13 Min</option>
-          <option value="840">14 Min</option>
-          <option value="900">15 Min</option>
-          <option value="960">16 Min</option>
-          <option value="1020">17 Min</option>
-          <option value="1080">18 Min</option>
-          <option value="1140">19 Min</option>
-          <option value="1200">20 Min</option>
-          <option value="1260">21 Min</option>
-          <option value="1320">22 Min</option>
-          <option value="1380">23 Min</option>
-          <option value="1440">24 Min</option>
-          <option value="1500">25 Min</option>
-          <option value="1560">26 Min</option>
-          <option value="1620">27 Min</option>
-          <option value="1680">28 Min</option>
-          <option value="1740">29 Min</option>
-          <option value="1800">30 Min</option>
-          <option value="1860">31 Min</option>
-          <option value="1920">32 Min</option>
-          <option value="1980">33 Min</option>
-          <option value="2040">34 Min</option>
-          <option value="2100">35 Min</option>
-          <option value="2160">36 Min</option>
-          <option value="2220">37 Min</option>
-          <option value="2280">38 Min</option>
-          <option value="2340">39 Min</option>
-          <option value="2400">40 Min</option>
-          <option value="2460">41 Min</option>
-          <option value="2520">42 Min</option>
-          <option value="2580">43 Min</option>
-          <option value="2640">44 Min</option>
-          <option value="2700">45 Min</option>
-          <option value="2760">46 Min</option>
-          <option value="2820">47 Min</option>
-          <option value="2880">48 Min</option>
-          <option value="2940">49 Min</option>
-          <option value="3000">50 Min</option>
-          <option value="3060">51 Min</option>
-          <option value="3120">52 Min</option>
-          <option value="3180">53 Min</option>
-          <option value="3240">54 Min</option>
-          <option value="3300">55 Min</option>
-          <option value="3360">56 Min</option>
-          <option value="3420">57 Min</option>
-          <option value="3480">58 Min</option>
-          <option value="3540">59 Min</option>
-          <option value="3600">1 Hour</option>
-
-        </select>
-      </div>
-
-      <button class="btn-generate" onclick="startAnalysis()">⚡ GENERATE SIGNAL</button>
-    </div>
-
-    <!-- ANALYZING SCREEN -->
-    <div id="analyzingScreen" class="screen">
-      <div class="analyzing-box">
-        <div class="pair-title" id="analyzingPair">EUR/USD (OTC)</div>
-        
-        <div class="chart-box">
-          <canvas id="liveCanvas"></canvas>
-        </div>
-
-        <div class="metrics-grid">
-          <div class="metric-badge">Trend: OK</div>
-          <div class="metric-badge">RSI: Scanning</div>
-          <div class="metric-badge">Vol: High</div>
-        </div>
-
-        <div class="status-text">Scanning candles & calculating accuracy...</div>
-      </div>
-    </div>
-
-    <!-- SIGNAL RESULT SCREEN -->
-    <div id="signalScreen" class="screen">
-      <div class="signal-card" id="signalBorder">
-        <div style="font-size: 12px; color: #94a3b8;" id="signalPairDisplay">EUR/USD (OTC)</div>
-        <div class="signal-direction" id="signalDir">▲ UP (CALL)</div>
-        
-        <div class="signal-details">
-          Accuracy: <strong id="signalAcc">94%</strong><br>
-          Expiry: <span id="signalTime">3s</span>
-        </div>
-
-        <div>TAKE TRADE AT</div>
-        <div class="time-badge" id="tradeTime">16:54:00</div>
-
-        <button class="btn-secondary" onclick="resetForm()">← Generate New Signal</button>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    let canvas = document.getElementById("liveCanvas");
-    let ctx = canvas.getContext("2d");
-    let animId;
-
-    function startAnalysis() {
-      const pair = document.getElementById("pairSelect").value;
-      document.getElementById("analyzingPair").innerText = pair;
-
-      // Switch screens
-      document.getElementById("formScreen").classList.remove("active");
-      document.getElementById("analyzingScreen").classList.add("active");
-
-      // Draw dynamic wave animation
-      let step = 0;
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 2;
-
-        for (let x = 0; x < canvas.width; x++) {
-          let y = canvas.height / 2 + Math.sin((x + step) * 0.05) * 20 + Math.cos((x + step) * 0.02) * 10;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+        if (!Array.isArray(candles) || candles.length < 60) {
+            return {
+                direction: "WAIT",
+                confidence: 0,
+                strength: "NO DATA",
+                reason: "Not enough market data"
+            };
         }
-        ctx.stroke();
-        step += 4;
-        animId = requestAnimationFrame(animate);
-      }
-      animate();
 
-      // Show signal after 3 seconds
-      setTimeout(() => {
-        cancelAnimationFrame(animId);
-        showSignal(pair);
-      }, 3000);
+        const closes = candles.map(c => Number(c.close));
+        const highs  = candles.map(c => Number(c.high));
+        const lows   = candles.map(c => Number(c.low));
+
+        const ema9  = EMA(closes, 9);
+        const ema21 = EMA(closes, 21);
+        const ema50 = EMA(closes, 50);
+
+        const rsi = RSI(closes, 14);
+
+        const macd = MACD(closes, 12, 26, 9);
+
+        const atr = ATR(candles, 14);
+
+        const last = candles[candles.length - 1];
+        const prev = candles[candles.length - 2];
+
+        const lastClose = closes[closes.length - 1];
+
+        let callScore = 0;
+        let putScore = 0;
+
+        const reasons = [];
+
+        /* -------------------------------------------------
+           1. EMA TREND
+           ------------------------------------------------- */
+
+        if (ema9 > ema21) {
+            callScore += 18;
+            reasons.push("EMA bullish");
+        } else {
+            putScore += 18;
+            reasons.push("EMA bearish");
+        }
+
+        if (ema21 > ema50) {
+            callScore += 15;
+        } else {
+            putScore += 15;
+        }
+
+        /* -------------------------------------------------
+           2. RSI
+           ------------------------------------------------- */
+
+        if (rsi >= 52 && rsi <= 68) {
+            callScore += 15;
+            reasons.push("RSI bullish");
+        }
+
+        if (rsi <= 48 && rsi >= 32) {
+            putScore += 15;
+            reasons.push("RSI bearish");
+        }
+
+        /* Avoid chasing extreme RSI */
+        if (rsi > 72) {
+            callScore -= 10;
+        }
+
+        if (rsi < 28) {
+            putScore -= 10;
+        }
+
+        /* -------------------------------------------------
+           3. MACD
+           ------------------------------------------------- */
+
+        if (macd.macd > macd.signal && macd.histogram > 0) {
+            callScore += 18;
+            reasons.push("MACD bullish");
+        }
+
+        if (macd.macd < macd.signal && macd.histogram < 0) {
+            putScore += 18;
+            reasons.push("MACD bearish");
+        }
+
+        /* -------------------------------------------------
+           4. PRICE MOMENTUM
+           ------------------------------------------------- */
+
+        const momentumLookback = 5;
+
+        const oldPrice =
+            closes[closes.length - 1 - momentumLookback];
+
+        if (lastClose > oldPrice) {
+            callScore += 10;
+        }
+
+        if (lastClose < oldPrice) {
+            putScore += 10;
+        }
+
+        /* -------------------------------------------------
+           5. CANDLE STRUCTURE
+           ------------------------------------------------- */
+
+        const candleBody =
+            Math.abs(last.close - last.open);
+
+        const candleRange =
+            last.high - last.low;
+
+        if (candleRange > 0) {
+
+            const bodyRatio =
+                candleBody / candleRange;
+
+            /* Strong bullish candle */
+            if (
+                last.close > last.open &&
+                bodyRatio >= 0.55
+            ) {
+                callScore += 12;
+                reasons.push("Bullish candle");
+            }
+
+            /* Strong bearish candle */
+            if (
+                last.close < last.open &&
+                bodyRatio >= 0.55
+            ) {
+                putScore += 12;
+                reasons.push("Bearish candle");
+            }
+        }
+
+        /* -------------------------------------------------
+           6. SHORT-TERM CANDLE CONFIRMATION
+           ------------------------------------------------- */
+
+        if (prev.close < prev.open &&
+            last.close > last.open &&
+            last.close > prev.open) {
+
+            callScore += 8;
+            reasons.push("Bullish reversal");
+        }
+
+        if (prev.close > prev.open &&
+            last.close < last.open &&
+            last.close < prev.open) {
+
+            putScore += 8;
+            reasons.push("Bearish reversal");
+        }
+
+        /* -------------------------------------------------
+           7. VOLATILITY FILTER
+           ------------------------------------------------- */
+
+        const range =
+            last.high - last.low;
+
+        if (atr > 0) {
+
+            /* Extremely large candle = unstable entry */
+            if (range > atr * 2.2) {
+                callScore -= 12;
+                putScore -= 12;
+                reasons.push("High volatility");
+            }
+
+            /* Extremely small movement = weak setup */
+            if (range < atr * 0.25) {
+                callScore -= 8;
+                putScore -= 8;
+                reasons.push("Low volatility");
+            }
+        }
+
+        /* -------------------------------------------------
+           FINAL DECISION
+           ------------------------------------------------- */
+
+        callScore = Math.max(0, Math.min(100, callScore));
+        putScore  = Math.max(0, Math.min(100, putScore));
+
+        const difference =
+            Math.abs(callScore - putScore);
+
+        let direction = "WAIT";
+        let confidence = 0;
+
+        if (
+            callScore > putScore &&
+            callScore >= ENGINE.minConfidence &&
+            difference >= 15
+        ) {
+            direction = "CALL";
+            confidence = Math.round(
+                Math.min(96, callScore)
+            );
+        }
+
+        else if (
+            putScore > callScore &&
+            putScore >= ENGINE.minConfidence &&
+            difference >= 15
+        ) {
+            direction = "PUT";
+            confidence = Math.round(
+                Math.min(96, putScore)
+            );
+        }
+
+        else {
+            direction = "WAIT";
+            confidence = Math.round(
+                Math.max(callScore, putScore)
+            );
+        }
+
+        let strength = "WEAK";
+
+        if (confidence >= ENGINE.strongConfidence) {
+            strength = "STRONG";
+        }
+        else if (confidence >= ENGINE.minConfidence) {
+            strength = "MEDIUM";
+        }
+
+        return {
+            direction,
+            confidence,
+            strength,
+            rsi: Number(rsi.toFixed(2)),
+            ema9: Number(ema9.toFixed(6)),
+            ema21: Number(ema21.toFixed(6)),
+            ema50: Number(ema50.toFixed(6)),
+            macd: Number(macd.macd.toFixed(6)),
+            signal: Number(macd.signal.toFixed(6)),
+            atr: Number(atr.toFixed(6)),
+            callScore,
+            putScore,
+            reasons: reasons.slice(-5)
+        };
+    }
+};
+
+
+/* =========================================================
+   EMA
+   ========================================================= */
+
+function EMA(values, period) {
+
+    if (!values || values.length < period) {
+        return 0;
     }
 
-    function showSignal(pair) {
-      document.getElementById("analyzingScreen").classList.remove("active");
-      document.getElementById("signalScreen").classList.add("active");
+    const multiplier =
+        2 / (period + 1);
 
-      const isCall = Math.random() > 0.4;
-      const accuracy = Math.floor(Math.random() * 8) + 90;
-      
-      const dirElem = document.getElementById("signalDir");
-      const borderElem = document.getElementById("signalBorder");
-      
-      if (isCall) {
-        dirElem.innerText = "▲ UP (CALL)";
-        dirElem.className = "signal-direction";
-        borderElem.style.borderColor = "#22c55e";
-      } else {
-        dirElem.innerText = "▼ DOWN (PUT)";
-        dirElem.className = "signal-direction put";
-        borderElem.style.borderColor = "#ef4444";
-      }
+    let ema = values
+        .slice(0, period)
+        .reduce((a, b) => a + b, 0) / period;
 
-      document.getElementById("signalPairDisplay").innerText = pair;
-
-      const timerValue = parseInt(document.getElementById("timerSelect").value);
-
-      let timerText;
-
-      if (timerValue < 60) {
-        timerText = timerValue + "s";
-      } else if (timerValue === 3600) {
-        timerText = "1 Hour";
-      } else {
-        timerText = (timerValue / 60) + " Min";
-      }
-
-      document.getElementById("signalAcc").innerText = accuracy + "%";
-      document.getElementById("signalTime").innerText = timerText;
-
-      // Calculate current time + 1 min for execution display
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 1);
-      document.getElementById("tradeTime").innerText = now.toTimeString().split(' ')[0];
+    for (
+        let i = period;
+        i < values.length;
+        i++
+    ) {
+        ema =
+            (values[i] - ema) *
+            multiplier +
+            ema;
     }
 
-    function resetForm() {
-      document.getElementById("signalScreen").classList.remove("active");
-      document.getElementById("formScreen").classList.add("active");
+    return ema;
+}
+
+
+/* =========================================================
+   RSI
+   ========================================================= */
+
+function RSI(values, period = 14) {
+
+    if (values.length <= period) {
+        return 50;
     }
-  </script>
-</body>
-</html>
+
+    let gains = 0;
+    let losses = 0;
+
+    for (let i = 1; i <= period; i++) {
+
+        const change =
+            values[i] - values[i - 1];
+
+        if (change >= 0) {
+            gains += change;
+        } else {
+            losses += Math.abs(change);
+        }
+    }
+
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+
+    for (
+        let i = period + 1;
+        i < values.length;
+        i++
+    ) {
+
+        const change =
+            values[i] - values[i - 1];
+
+        const gain =
+            change > 0 ? change : 0;
+
+        const loss =
+            change < 0 ? Math.abs(change) : 0;
+
+        avgGain =
+            ((avgGain * (period - 1)) + gain) /
+            period;
+
+        avgLoss =
+            ((avgLoss * (period - 1)) + loss) /
+            period;
+    }
+
+    if (avgLoss === 0) {
+        return 100;
+    }
+
+    const rs =
+        avgGain / avgLoss;
+
+    return 100 - (100 / (1 + rs));
+}
+
+
+/* =========================================================
+   MACD
+   ========================================================= */
+
+function MACD(
+    values,
+    fastPeriod = 12,
+    slowPeriod = 26,
+    signalPeriod = 9
+) {
+
+    if (values.length < slowPeriod + signalPeriod) {
+
+        return {
+            macd: 0,
+            signal: 0,
+            histogram: 0
+        };
+    }
+
+    const fastEMA =
+        EMA(values, fastPeriod);
+
+    const slowEMA =
+        EMA(values, slowPeriod);
+
+    const macdValue =
+        fastEMA - slowEMA;
+
+    /*
+       Build MACD history for signal calculation
+    */
+
+    const macdHistory = [];
+
+    for (
+        let i = slowPeriod;
+        i < values.length;
+        i++
+    ) {
+
+        const subset =
+            values.slice(0, i + 1);
+
+        const fast =
+            EMA(subset, fastPeriod);
+
+        const slow =
+            EMA(subset, slowPeriod);
+
+        macdHistory.push(
+            fast - slow
+        );
+    }
+
+    const signal =
+        EMA(macdHistory, signalPeriod);
+
+    return {
+        macd: macdValue,
+        signal,
+        histogram: macdValue - signal
+    };
+}
+
+
+/* =========================================================
+   ATR
+   ========================================================= */
+
+function ATR(candles, period = 14) {
+
+    if (candles.length < period + 1) {
+        return 0;
+    }
+
+    const trueRanges = [];
+
+    for (
+        let i = 1;
+        i < candles.length;
+        i++
+    ) {
+
+        const current =
+            candles[i];
+
+        const previous =
+            candles[i - 1];
+
+        const tr1 =
+            current.high - current.low;
+
+        const tr2 =
+            Math.abs(
+                current.high -
+                previous.close
+            );
+
+        const tr3 =
+            Math.abs(
+                current.low -
+                previous.close
+            );
+
+        trueRanges.push(
+            Math.max(tr1, tr2, tr3)
+        );
+    }
+
+    const recent =
+        trueRanges.slice(-period);
+
+    return recent.reduce(
+        (a, b) => a + b,
+        0
+    ) / recent.length;
+}
+
+
+/* =========================================================
+   CANDLE NORMALIZER
+   ========================================================= */
+
+function normalizeCandles(raw) {
+
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+
+    return raw
+        .map(c => {
+
+            return {
+                time: Number(
+                    c.time ||
+                    c.timestamp ||
+                    Date.now()
+                ),
+
+                open: Number(c.open),
+
+                high: Number(c.high),
+
+                low: Number(c.low),
+
+                close: Number(c.close)
+            };
+
+        })
+        .filter(c =>
+            Number.isFinite(c.open) &&
+            Number.isFinite(c.high) &&
+            Number.isFinite(c.low) &&
+            Number.isFinite(c.close)
+        );
+}
+
+
+/* =========================================================
+   LIVE DATA INTERFACE
+   ---------------------------------------------------------
+   Connect your REAL candle feed to this function.
+
+   Example:
+
+   updateMarketData([
+       {
+           time: 123,
+           open: 1.1000,
+           high: 1.1010,
+           low: 1.0995,
+           close: 1.1008
+       }
+   ]);
+
+   ========================================================= */
+
+let latestCandles = [];
+
+function updateMarketData(rawCandles) {
+
+    const candles =
+        normalizeCandles(rawCandles);
+
+    if (candles.length < 60) {
+
+        console.warn(
+            "AI Engine: waiting for at least 60 candles."
+        );
+
+        return null;
+    }
+
+    latestCandles = candles;
+
+    const result =
+        ENGINE.generateSignal(candles);
+
+    return result;
+}
+
+
+/* =========================================================
+   RUN ENGINE
+   ========================================================= */
+
+function runAIEngine(candles = latestCandles) {
+
+    const result =
+        updateMarketData(candles);
+
+    if (!result) {
+        return {
+            direction: "WAIT",
+            confidence: 0,
+            strength: "NO DATA"
+        };
+    }
+
+    console.log(
+        "AI SIGNAL:",
+        result.direction,
+        "| Confidence:",
+        result.confidence + "%",
+        "| Strength:",
+        result.strength
+    );
+
+    return result;
+}
+
+
+/* =========================================================
+   SAFE SIGNAL DISPLAY
+   ---------------------------------------------------------
+   This replaces random CALL/PUT generation.
+   ========================================================= */
+
+function displayAISignal(result) {
+
+    if (!result) return;
+
+    const signalElement =
+        document.getElementById("signal");
+
+    const accuracyElement =
+        document.getElementById("accuracy");
+
+    const directionElement =
+        document.getElementById("direction");
+
+    const strengthElement =
+        document.getElementById("strength");
+
+    if (signalElement) {
+        signalElement.textContent =
+            result.direction;
+    }
+
+    if (directionElement) {
+        directionElement.textContent =
+            result.direction;
+    }
+
+    if (accuracyElement) {
+        accuracyElement.textContent =
+            result.confidence + "%";
+    }
+
+    if (strengthElement) {
+        strengthElement.textContent =
+            result.strength;
+    }
+}
+
+
+/* =========================================================
+   MAIN SIGNAL HANDLER
+   ---------------------------------------------------------
+   IMPORTANT:
+   Do NOT use Math.random() for trading direction.
+   ========================================================= */
+
+function processMarketSignal(candles) {
+
+    const result =
+        runAIEngine(candles);
+
+    displayAISignal(result);
+
+    return result;
+}
+
+
+/* =========================================================
+   OPTIONAL AUTO-SCAN
+   ---------------------------------------------------------
+   Scans every 8 seconds only when live candle data
+   has been supplied to latestCandles.
+   ========================================================= */
+
+function startAIScanner() {
+
+    stopAIScanner();
+
+    analysisTimer =
+        setInterval(() => {
+
+            if (
+                latestCandles &&
+                latestCandles.length >= 60
+            ) {
+
+                const result =
+                    runAIEngine(latestCandles);
+
+                displayAISignal(result);
+            }
+
+        }, 8000);
+}
+
+
+function stopAIScanner() {
+
+    if (analysisTimer) {
+
+        clearInterval(
+            analysisTimer
+        );
+
+        analysisTimer = null;
+    }
+}
+
+
+/* =========================================================
+   EXPORT TO GLOBAL WINDOW
+   ========================================================= */
+
+window.AISignalEngine = {
+    generateSignal:
+        ENGINE.generateSignal.bind(ENGINE),
+
+    updateMarketData,
+
+    runAIEngine,
+
+    processMarketSignal,
+
+    startAIScanner,
+
+    stopAIScanner
+};
+
+</script>
