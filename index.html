@@ -1,1164 +1,451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#020711">
-<title>Arsi Signals - AI BOT PRO MAX</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accurate Signal Confluence Engine</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --green-call: #22c55e;
+      --red-put: #ef4444;
+      --neutral-bg: #334155;
+      --border-color: #334155;
+    }
 
-<style>
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
 
-html,body{
-  margin:0;
-  padding:0;
-  min-height:100%;
-  font-family:Arial,Helvetica,sans-serif;
-  background:
-    radial-gradient(circle at 50% 0%,#12285a 0%,#071329 35%,#020711 75%);
-  color:#fff;
-}
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
 
-body{
-  min-height:100vh;
-  padding:18px 12px 30px;
-}
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-.app{
-  width:100%;
-  max-width:520px;
-  margin:0 auto;
-}
+    header {
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
 
-.header{
-  text-align:center;
-  margin-bottom:16px;
-}
+    header h1 {
+      font-size: 1.5rem;
+      color: var(--text-main);
+    }
 
-.header h1{
-  margin:0;
-  font-size:25px;
-  font-weight:900;
-  letter-spacing:1px;
-  color:#ff9d00;
-  text-shadow:0 0 15px rgba(255,157,0,.35);
-}
+    header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
 
-.header p{
-  margin:5px 0 0;
-  color:#9eb8e9;
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:.5px;
-}
+    /* Dashboard Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
 
-.panel{
-  background:linear-gradient(
-    145deg,
-    rgba(31,67,137,.70),
-    rgba(5,17,43,.88)
-  );
-  border:1px solid rgba(115,170,255,.32);
-  border-radius:24px;
-  padding:15px;
-  box-shadow:
-    0 15px 45px rgba(0,0,0,.45),
-    inset 0 0 30px rgba(40,100,210,.08);
-  backdrop-filter:blur(12px);
-}
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
 
-.status-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:9px;
-  margin-bottom:15px;
-}
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
 
-.status{
-  min-height:70px;
-  border-radius:15px;
-  padding:10px 5px;
-  text-align:center;
-  background:linear-gradient(
-    145deg,
-    rgba(78,133,225,.34),
-    rgba(38,70,145,.23)
-  );
-  border:1px solid rgba(125,178,255,.32);
-  box-shadow:inset 0 0 15px rgba(100,160,255,.08);
-}
+    /* Signal Card */
+    .signal-card {
+      text-align: center;
+      align-items: center;
+    }
 
-.status-title{
-  font-size:10px;
-  color:#a7d8ff;
-  font-weight:800;
-  letter-spacing:.5px;
-}
+    .signal-badge {
+      font-size: 2.5rem;
+      font-weight: 800;
+      padding: 15px 40px;
+      border-radius: 8px;
+      margin: 15px 0;
+      letter-spacing: 2px;
+      width: 100%;
+      background-color: var(--neutral-bg);
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
 
-.status-value{
-  margin-top:7px;
-  font-size:15px;
-  font-weight:900;
-}
+    .signal-badge.CALL {
+      background-color: rgba(34, 197, 94, 0.2);
+      color: var(--green-call);
+      border: 2px solid var(--green-call);
+    }
 
-.active{
-  color:#00ff4c;
-  text-shadow:0 0 10px rgba(0,255,76,.45);
-}
+    .signal-badge.PUT {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: var(--red-put);
+      border: 2px solid var(--red-put);
+    }
 
-.online{
-  color:#00d9ff;
-  text-shadow:0 0 10px rgba(0,217,255,.4);
-}
+    .signal-reason {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      min-height: 40px;
+    }
 
-.traders{
-  color:#fff;
-}
+    /* Indicators Display */
+    .indicator-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-.field{
-  margin-top:12px;
-}
+    .indicator-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+      font-size: 0.95rem;
+    }
 
-.label{
-  display:block;
-  margin:0 0 6px 3px;
-  font-size:11px;
-  font-weight:800;
-  color:#b9d4ff;
-}
+    .indicator-item span:first-child {
+      color: var(--text-muted);
+    }
 
-select{
-  width:100%;
-  height:48px;
-  padding:0 13px;
-  border-radius:13px;
-  border:1px solid rgba(96,166,255,.42);
-  background:#071735;
-  color:#fff;
-  outline:none;
-  font-size:14px;
-  font-weight:700;
-  appearance:auto;
-}
+    .indicator-item span:last-child {
+      font-weight: 600;
+    }
 
-select:focus{
-  border-color:#ff9d00;
-  box-shadow:0 0 0 2px rgba(255,157,0,.15);
-}
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
 
-.generate-btn,
-.new-signal-btn{
-  width:100%;
-  height:52px;
-  margin-top:16px;
-  border:0;
-  border-radius:15px;
-  background:linear-gradient(90deg,#1574ff,#00a9ff,#557cff);
-  color:#fff;
-  font-size:15px;
-  font-weight:900;
-  cursor:pointer;
-  box-shadow:
-    0 7px 22px rgba(0,119,255,.35),
-    inset 0 1px 0 rgba(255,255,255,.25);
-}
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
 
-.generate-btn:active,
-.new-signal-btn:active{
-  transform:scale(.98);
-}
+    button:hover {
+      opacity: 0.9;
+    }
 
-.generate-btn:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-}
+    .btn-primary {
+      background-color: #3b82f6;
+      color: white;
+    }
 
-.scanner{
-  display:none;
-  margin-top:16px;
-  text-align:center;
-}
+    .btn-secondary {
+      background-color: var(--neutral-bg);
+      color: var(--text-main);
+    }
 
-.scanner-box{
-  border-radius:20px;
-  padding:25px 15px;
-  background:rgba(4,17,43,.65);
-  border:1px solid rgba(85,155,255,.35);
-}
+    /* History Table */
+    .history-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
 
-.scanner-title{
-  color:#00d9ff;
-  font-size:17px;
-  font-weight:900;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
 
-.scanner-sub{
-  margin-top:7px;
-  color:#8ca9d7;
-  font-size:12px;
-}
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
 
-#signalCanvas{
-  width:100%;
-  height:100px;
-  display:block;
-  margin:12px auto 0;
-}
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
 
-.result{
-  display:none;
-  margin-top:16px;
-}
-
-.signal-card{
-  border:2px solid #ff9d00;
-  border-radius:20px;
-  padding:18px 14px 16px;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(29,66,138,.80),
-      rgba(4,18,45,.92)
-    );
-  box-shadow:
-    0 0 25px rgba(255,157,0,.10),
-    inset 0 0 25px rgba(65,125,255,.08);
-  text-align:center;
-}
-
-.signal-card.call{
-  border-color:#00ff69;
-  box-shadow:0 0 25px rgba(0,255,105,.13);
-}
-
-.signal-card.put{
-  border-color:#ff4b5f;
-  box-shadow:0 0 25px rgba(255,75,95,.13);
-}
-
-.signal-card.wait{
-  border-color:#ffae00;
-  box-shadow:0 0 25px rgba(255,174,0,.12);
-}
-
-.pair-result{
-  color:#c5dcff;
-  font-size:13px;
-  font-weight:800;
-  margin-bottom:10px;
-}
-
-.direction{
-  font-size:30px;
-  font-weight:1000;
-  letter-spacing:1px;
-  margin:2px 0 8px;
-}
-
-.direction.call{
-  color:#00ff69;
-  text-shadow:0 0 15px rgba(0,255,105,.4);
-}
-
-.direction.put{
-  color:#ff5267;
-  text-shadow:0 0 15px rgba(255,82,103,.4);
-}
-
-.direction.wait{
-  color:#ffae00;
-  text-shadow:0 0 15px rgba(255,174,0,.3);
-}
-
-.info-line{
-  margin-top:6px;
-  font-size:13px;
-  color:#d4e3ff;
-  font-weight:700;
-}
-
-.info-line span{
-  color:#fff;
-}
-
-.reasons{
-  margin-top:13px;
-  padding:10px;
-  border-radius:12px;
-  background:rgba(0,0,0,.18);
-  text-align:left;
-}
-
-.reason{
-  font-size:11px;
-  color:#a9c6ef;
-  margin:4px 0;
-}
-
-.trade-time{
-  margin-top:13px;
-  font-size:12px;
-  font-weight:800;
-  color:#b9d2fa;
-}
-
-.time-value{
-  display:inline-block;
-  margin-top:5px;
-  padding:7px 18px;
-  border-radius:20px;
-  background:#0866ed;
-  color:#fff;
-  font-size:17px;
-  font-weight:900;
-  box-shadow:0 0 15px rgba(0,111,255,.35);
-}
-
-.new-signal-btn{
-  height:45px;
-  margin-top:14px;
-  font-size:13px;
-}
-
-.footer{
-  margin-top:13px;
-  text-align:center;
-  color:#6683b3;
-  font-size:10px;
-  line-height:1.5;
-}
-
-.data-status{
-  margin-top:10px;
-  text-align:center;
-  font-size:10px;
-  font-weight:800;
-  color:#00ff69;
-}
-
-@media(max-width:370px){
-  body{
-    padding-left:8px;
-    padding-right:8px;
-  }
-
-  .status-title{
-    font-size:9px;
-  }
-
-  .status-value{
-    font-size:13px;
-  }
-
-  .direction{
-    font-size:26px;
-  }
-}
-</style>
+    .text-call { color: var(--green-call); font-weight: bold; }
+    .text-put { color: var(--red-put); font-weight: bold; }
+    .text-neutral { color: var(--text-muted); }
+  </style>
 </head>
-
 <body>
 
-<div class="app">
+<div class="container">
+  <header>
+    <h1>Confluence Signal Generator</h1>
+    <p>EMA (9/21/200) + RSI (14) + MACD Confirmation Engine</p>
+  </header>
 
-  <div class="header">
-    <h1>ARSI SIGNALS</h1>
-    <p>AI BOT | PRO MAX SIGNAL ENGINE</p>
+  <div class="grid">
+    <!-- Live Signal Display -->
+    <div class="card signal-card">
+      <div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Latest Generated Signal</span>
+        <div id="signalDisplay" class="signal-badge NEUTRAL">NEUTRAL</div>
+      </div>
+      <div id="signalReason" class="signal-reason">Waiting for market evaluation...</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+        Price: <span id="currentPriceDisplay" style="color: var(--text-main); font-weight: bold;">0.0000</span>
+      </div>
+    </div>
+
+    <!-- Live Indicators -->
+    <div class="card">
+      <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Technical Indicators</h3>
+      <div class="indicator-list">
+        <div class="indicator-item">
+          <span>EMA 9 / 21 / 200</span>
+          <span id="emaDisplay">- / - / -</span>
+        </div>
+        <div class="indicator-item">
+          <span>RSI (14)</span>
+          <span id="rsiDisplay">-</span>
+        </div>
+        <div class="indicator-item">
+          <span>MACD Hist</span>
+          <span id="macdDisplay">-</span>
+        </div>
+        <div class="indicator-item">
+          <span>Trend Bias</span>
+          <span id="trendDisplay">-</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="panel">
-
-    <div class="status-grid">
-
-      <div class="status">
-        <div class="status-title">AI LICENSE</div>
-        <div class="status-value active">ACTIVE</div>
-      </div>
-
-      <div class="status">
-        <div class="status-title">AI ENGINE</div>
-        <div class="status-value online">ONLINE</div>
-      </div>
-
-      <div class="status">
-        <div class="status-title">TRADERS</div>
-        <div class="status-value traders">18.4K+</div>
-      </div>
-
-    </div>
-
-    <div class="field">
-      <label class="label">BROKER</label>
-      <select id="broker">
-        <option>Quotex</option>
-        <option>Pocket Option</option>
-        <option>IQ Option</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label class="label">MARKET TYPE</label>
-      <select id="marketType">
-        <option>OTC Market</option>
-        <option>Real Market</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label class="label">CURRENCY PAIR</label>
-      <select id="pair">
-
-        <option>EUR/USD (OTC)</option>
-        <option>AUD/CAD (OTC)</option>
-        <option>AUD/CHF (OTC)</option>
-        <option>AUD/JPY (OTC)</option>
-        <option>AUD/NZD (OTC)</option>
-        <option>AUD/USD (OTC)</option>
-
-        <option>CAD/CHF (OTC)</option>
-        <option>CAD/JPY (OTC)</option>
-        <option>CHF/JPY (OTC)</option>
-        <option>CHF/NOK (OTC)</option>
-
-        <option>EUR/CHF (OTC)</option>
-        <option>EUR/GBP (OTC)</option>
-        <option>EUR/JPY (OTC)</option>
-        <option>EUR/NZD (OTC)</option>
-        <option>EUR/TRY (OTC)</option>
-        <option>EUR/RUB (OTC)</option>
-        <option>EUR/HUF (OTC)</option>
-
-        <option>GBP/AUD (OTC)</option>
-        <option>GBP/JPY (OTC)</option>
-        <option>GBP/USD (OTC)</option>
-
-        <option>NZD/JPY (OTC)</option>
-        <option>NZD/USD (OTC)</option>
-
-        <option>USD/ARS (OTC)</option>
-        <option>USD/BDT (OTC)</option>
-        <option>USD/BRL (OTC)</option>
-        <option>USD/CAD (OTC)</option>
-        <option>USD/CHF (OTC)</option>
-        <option>USD/CLP (OTC)</option>
-        <option>USD/CNH (OTC)</option>
-        <option>USD/COP (OTC)</option>
-        <option>USD/DZD (OTC)</option>
-        <option>USD/EGP (OTC)</option>
-        <option>USD/IDR (OTC)</option>
-        <option>USD/INR (OTC)</option>
-        <option>USD/MXN (OTC)</option>
-        <option>USD/MYR (OTC)</option>
-        <option>USD/PKR (OTC)</option>
-        <option>USD/PHP (OTC)</option>
-        <option>USD/RUB (OTC)</option>
-        <option>USD/SGD (OTC)</option>
-        <option>USD/THB (OTC)</option>
-        <option>USD/TRY (OTC)</option>
-        <option>USD/VND (OTC)</option>
-
-        <option>AED/CNY (OTC)</option>
-        <option>BHD/CNY (OTC)</option>
-        <option>JOD/CNY (OTC)</option>
-        <option>OMR/CNY (OTC)</option>
-        <option>QAR/CNY (OTC)</option>
-        <option>SAR/CNY (OTC)</option>
-
-        <option>KES/USD (OTC)</option>
-        <option>LBP/USD (OTC)</option>
-        <option>MAD/USD (OTC)</option>
-        <option>NGN/USD (OTC)</option>
-        <option>TND/USD (OTC)</option>
-        <option>UAH/USD (OTC)</option>
-        <option>YER/USD (OTC)</option>
-        <option>ZAR/USD (OTC)</option>
-
-      </select>
-    </div>
-
-    <div class="field">
-      <label class="label">EXPIRY</label>
-      <select id="expiry">
-
-        <option value="3s">3s</option>
-        <option value="7s">7s</option>
-        <option value="9s">9s</option>
-        <option value="11s">11s</option>
-        <option value="14s">14s</option>
-        <option value="17s">17s</option>
-        <option value="20s">20s</option>
-        <option value="24s">24s</option>
-        <option value="27s">27s</option>
-        <option value="30s">30s</option>
-
-        <option value="1m">1 min</option>
-        <option value="2m">2 min</option>
-        <option value="3m">3 min</option>
-        <option value="4m">4 min</option>
-        <option value="5m">5 min</option>
-        <option value="6m">6 min</option>
-        <option value="7m">7 min</option>
-        <option value="8m">8 min</option>
-        <option value="9m">9 min</option>
-        <option value="10m">10 min</option>
-        <option value="11m">11 min</option>
-        <option value="12m">12 min</option>
-        <option value="13m">13 min</option>
-        <option value="14m">14 min</option>
-        <option value="15m">15 min</option>
-        <option value="16m">16 min</option>
-        <option value="17m">17 min</option>
-        <option value="18m">18 min</option>
-        <option value="19m">19 min</option>
-        <option value="20m">20 min</option>
-        <option value="21m">21 min</option>
-        <option value="22m">22 min</option>
-        <option value="23m">23 min</option>
-        <option value="24m">24 min</option>
-        <option value="25m">25 min</option>
-        <option value="26m">26 min</option>
-        <option value="27m">27 min</option>
-        <option value="28m">28 min</option>
-        <option value="29m">29 min</option>
-        <option value="30m">30 min</option>
-        <option value="31m">31 min</option>
-        <option value="32m">32 min</option>
-        <option value="33m">33 min</option>
-        <option value="34m">34 min</option>
-        <option value="35m">35 min</option>
-        <option value="36m">36 min</option>
-        <option value="37m">37 min</option>
-        <option value="38m">38 min</option>
-        <option value="39m">39 min</option>
-        <option value="40m">40 min</option>
-        <option value="41m">41 min</option>
-        <option value="42m">42 min</option>
-        <option value="43m">43 min</option>
-        <option value="44m">44 min</option>
-        <option value="45m">45 min</option>
-        <option value="46m">46 min</option>
-        <option value="47m">47 min</option>
-        <option value="48m">48 min</option>
-        <option value="49m">49 min</option>
-        <option value="50m">50 min</option>
-        <option value="51m">51 min</option>
-        <option value="52m">52 min</option>
-        <option value="53m">53 min</option>
-        <option value="54m">54 min</option>
-        <option value="55m">55 min</option>
-        <option value="56m">56 min</option>
-        <option value="57m">57 min</option>
-        <option value="58m">58 min</option>
-        <option value="59m">59 min</option>
-        <option value="60m">60 min</option>
-
-      </select>
-    </div>
-
-    <div class="data-status" id="dataStatus">
-      ● LIVE DATA: CONNECTED
-    </div>
-
-    <button class="generate-btn" id="generateBtn" onclick="startAnalysis()">
-      ⚡ GENERATE SIGNAL
-    </button>
-
-    <div class="scanner" id="scanner">
-
-      <div class="scanner-box">
-
-        <div class="scanner-title">
-          AI MARKET ANALYSIS
-        </div>
-
-        <div class="scanner-sub" id="scannerText">
-          Reading market structure...
-        </div>
-
-        <canvas id="signalCanvas"></canvas>
-
-      </div>
-
-    </div>
-
-    <div class="result" id="result">
-
-      <div class="signal-card wait" id="signalCard">
-
-        <div class="pair-result" id="resultPair">
-          EUR/USD (OTC)
-        </div>
-
-        <div class="direction wait" id="direction">
-          ⏸ WAIT
-        </div>
-
-        <div class="info-line">
-          Confidence:
-          <span id="confidence">0%</span>
-        </div>
-
-        <div class="info-line">
-          Expiry:
-          <span id="resultExpiry">3s</span>
-        </div>
-
-        <div class="info-line">
-          Strength:
-          <span id="strength">WAIT</span>
-        </div>
-
-        <div class="reasons" id="reasons"></div>
-
-        <div class="trade-time">
-          TAKE TRADE AT
-          <div class="time-value" id="tradeTime">
-            WAIT
-          </div>
-        </div>
-
-        <button class="new-signal-btn" onclick="startAnalysis()">
-          ← Generate New Signal
-        </button>
-
-      </div>
-
-    </div>
-
+  <!-- Manual & Auto Controls -->
+  <div class="controls">
+    <button class="btn-primary" onclick="tickMarket()">New Candle Tick</button>
+    <button id="autoBtn" class="btn-secondary" onclick="toggleAuto()">Start Auto Tick (2s)</button>
   </div>
 
-  <div class="footer">
-    Technical analysis only. No signal engine can guarantee a winning trade.
+  <!-- Signal Log -->
+  <div class="card history-card">
+    <h3>Signal Audit Log</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Price</th>
+          <th>Signal</th>
+          <th>RSI</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="historyLog">
+        <tr>
+          <td colspan="5" style="text-align: center; color: var(--text-muted);">No signals generated yet.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-
 </div>
 
-
 <script>
-/* ============================================================
-   AI TECHNICAL SIGNAL ENGINE
-   ============================================================ */
+  // --- Simulated Market State ---
+  let candles = [];
+  let currentPrice = 1.08500;
+  let autoInterval = null;
 
-const AI_CONFIG = {
-  minCandles: 60,
-
-  emaFast: 9,
-  emaMedium: 21,
-  emaSlow: 50,
-
-  rsiPeriod: 14,
-
-  macdFast: 12,
-  macdSlow: 26,
-  macdSignal: 9,
-
-  atrPeriod: 14,
-
-  minimumConfidence: 58,
-  strongConfidence: 72
-};
-
-let latestCandles = [];
-let analysisTimer = null;
-let animationFrame = null;
-let generationId = 0;
-
-
-/* ============================================================
-   BASIC HELPERS
-   ============================================================ */
-
-function toNumber(value){
-  const n = Number(value);
-  return Number.isFinite(n) ? n : NaN;
-}
-
-function clamp(value,min,max){
-  return Math.max(min,Math.min(max,value));
-}
-
-function average(values){
-  if(!values.length) return 0;
-  return values.reduce((a,b)=>a+b,0) / values.length;
-}
-
-
-/* ============================================================
-   CANDLE NORMALIZATION
-   ============================================================ */
-
-function normalizeCandles(raw){
-
-  if(!Array.isArray(raw)) return [];
-
-  const output = [];
-
-  for(const candle of raw){
-
-    let time,open,high,low,close;
-
-    if(Array.isArray(candle)){
-
-      time  = candle[0];
-      open  = candle[1];
-      high  = candle[2];
-      low   = candle[3];
-      close = candle[4];
-
-    }else if(candle && typeof candle === "object"){
-
-      time  = candle.time ?? candle.timestamp ?? candle.t;
-      open  = candle.open ?? candle.o;
-      high  = candle.high ?? candle.h;
-      low   = candle.low ?? candle.l;
-      close = candle.close ?? candle.c;
-
+  // Initialize with 200 historical candles for accurate 200 EMA
+  function initMarket() {
+    for (let i = 0; i < 220; i++) {
+      currentPrice += (Math.random() - 0.495) * 0.0008;
+      candles.push({ close: currentPrice });
     }
+    evaluateEngine();
+  }
 
-    time  = Number(time);
-    open  = toNumber(open);
-    high  = toNumber(high);
-    low   = toNumber(low);
-    close = toNumber(close);
+  function tickMarket() {
+    currentPrice += (Math.random() - 0.495) * 0.0008;
+    candles.push({ close: currentPrice });
+    if (candles.length > 300) candles.shift(); // Keep memory lean
+    evaluateEngine();
+  }
 
-    if(
-      !Number.isFinite(open) ||
-      !Number.isFinite(high) ||
-      !Number.isFinite(low) ||
-      !Number.isFinite(close)
-    ){
-      continue;
+  function toggleAuto() {
+    const btn = document.getElementById('autoBtn');
+    if (autoInterval) {
+      clearInterval(autoInterval);
+      autoInterval = null;
+      btn.innerText = 'Start Auto Tick (2s)';
+      btn.className = 'btn-secondary';
+    } else {
+      autoInterval = setInterval(tickMarket, 2000);
+      btn.innerText = 'Stop Auto Tick';
+      btn.className = 'btn-primary';
     }
-
-    if(high < low) continue;
-
-    output.push({
-      time:Number.isFinite(time) ? time : output.length,
-      open,
-      high,
-      low,
-      close
-    });
   }
 
-  output.sort((a,b)=>a.time-b.time);
-
-  return output;
-}
-
-
-/* ============================================================
-   EMA & INDICATOR FUNCTIONS
-   ============================================================ */
-
-function EMA(values,period){
-  if(!values || values.length < period) return null;
-  const multiplier = 2 / (period + 1);
-  let ema = average(values.slice(0,period));
-  for(let i=period;i<values.length;i++){
-    ema = (values[i]-ema) * multiplier + ema;
+  // --- Core Technical Indicator Calculations ---
+  function calculateEMA(data, period) {
+    const k = 2 / (period + 1);
+    let emaArray = [data[0]];
+    for (let i = 1; i < data.length; i++) {
+      emaArray.push(data[i] * k + emaArray[i - 1] * (1 - k));
+    }
+    return emaArray;
   }
-  return ema;
-}
 
-function EMAHistory(values,period){
-  const result = [];
-  if(values.length < period) return result;
-  let ema = average(values.slice(0,period));
-  result.push(ema);
-  const multiplier = 2 / (period + 1);
-  for(let i=period;i<values.length;i++){
-    ema = (values[i]-ema) * multiplier + ema;
-    result.push(ema);
+  function calculateRSI(data, period = 14) {
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = data[i] - data[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    let rsi = [100 - (100 / (1 + avgGain / (avgLoss || 1)))];
+
+    for (let i = period + 1; i < data.length; i++) {
+      const diff = data[i] - data[i - 1];
+      avgGain = (avgGain * (period - 1) + (diff > 0 ? diff : 0)) / period;
+      avgLoss = (avgLoss * (period - 1) + (diff < 0 ? -diff : 0)) / period;
+      rsi.push(100 - (100 / (1 + avgGain / (avgLoss || 1))));
+    }
+    return rsi;
   }
-  return result;
-}
 
-function RSI(values,period=14){
-  if(values.length < period+1) return null;
-  let gains = 0, losses = 0;
-  for(let i=1;i<=period;i++){
-    const change = values[i]-values[i-1];
-    if(change >= 0) gains += change;
-    else losses += Math.abs(change);
+  function calculateMACD(data, fast = 12, slow = 26, signal = 9) {
+    const emaFast = calculateEMA(data, fast);
+    const emaSlow = calculateEMA(data, slow);
+    const macdLine = emaFast.map((val, idx) => val - emaSlow[idx]);
+    const signalLine = calculateEMA(macdLine, signal);
+    const histogram = macdLine.map((val, idx) => val - signalLine[idx]);
+    return { macdLine, signalLine, histogram };
   }
-  let avgGain = gains/period;
-  let avgLoss = losses/period;
-  for(let i=period+1;i<values.length;i++){
-    const change = values[i]-values[i-1];
-    const gain = change > 0 ? change : 0;
-    const loss = change < 0 ? Math.abs(change) : 0;
-    avgGain = ((avgGain*(period-1))+gain)/period;
-    avgLoss = ((avgLoss*(period-1))+loss)/period;
-  }
-  if(avgLoss === 0) return 100;
-  const rs = avgGain/avgLoss;
-  return 100-(100/(1+rs));
-}
 
-function MACD(values){
-  if(values.length < 35) return null;
-  const fastHistory = EMAHistory(values,AI_CONFIG.macdFast);
-  const slowHistory = EMAHistory(values,AI_CONFIG.macdSlow);
-  if(!fastHistory.length || !slowHistory.length) return null;
-  const macdHistory = [];
-  const offset = fastHistory.length - slowHistory.length;
-  for(let i=0;i<slowHistory.length;i++){
-    const fast = fastHistory[i+offset];
-    const slow = slowHistory[i];
-    macdHistory.push(fast-slow);
-  }
-  if(macdHistory.length < AI_CONFIG.macdSignal) return null;
-  const signal = EMA(macdHistory,AI_CONFIG.macdSignal);
-  const macd = macdHistory[macdHistory.length-1];
-  if(signal === null) return null;
-  return { macd, signal, histogram:macd-signal };
-}
+  // --- Multi-Indicator Confluence Generator ---
+  function generateSignal(candles) {
+    const closes = candles.map(c => c.close);
+    const price = closes[closes.length - 1];
 
-function ATR(candles,period=14){
-  if(candles.length < period+1) return null;
-  const trs = [];
-  for(let i=1;i<candles.length;i++){
-    const current = candles[i];
-    const previous = candles[i-1];
-    const tr = Math.max(
-      current.high-current.low,
-      Math.abs(current.high-previous.close),
-      Math.abs(current.low-previous.close)
-    );
-    trs.push(tr);
-  }
-  if(trs.length < period) return null;
-  return average(trs.slice(-period));
-}
+    const ema9 = calculateEMA(closes, 9);
+    const ema21 = calculateEMA(closes, 21);
+    const ema200 = calculateEMA(closes, 200);
+    const rsi = calculateRSI(closes, 14);
+    const macd = calculateMACD(closes, 12, 26, 9);
 
-function candleStructure(candle){
-  const range = candle.high-candle.low;
-  if(range <= 0) return { bullish:false, bearish:false, strength:0 };
-  const body = Math.abs(candle.close-candle.open);
-  const upperWick = candle.high - Math.max(candle.open,candle.close);
-  const lowerWick = Math.min(candle.open,candle.close) - candle.low;
-  const bodyRatio = body/range;
-  const bullish = candle.close > candle.open;
-  const bearish = candle.close < candle.open;
-  let strength = clamp(bodyRatio*100,0,100);
-  if(lowerWick > body*1.5 && bullish) strength += 10;
-  if(upperWick > body*1.5 && bearish) strength += 10;
-  return { bullish, bearish, strength:clamp(strength,0,100) };
-}
+    const lastEma9 = ema9[ema9.length - 1];
+    const lastEma21 = ema21[ema21.length - 1];
+    const lastEma200 = ema200[ema200.length - 1];
+    const lastRsi = rsi[rsi.length - 1];
+    const lastMacdHist = macd.histogram[macd.histogram.length - 1];
 
+    const isUpTrend = price > lastEma200 && lastEma9 > lastEma21;
+    const isDownTrend = price < lastEma200 && lastEma9 < lastEma21;
 
-/* ============================================================
-   MAIN AI ENGINE - GENERATES ALWAYS ACTIVE TRADING SIGNALS
-   ============================================================ */
-
-function runAIEngine(rawCandles){
-
-  const candles = normalizeCandles(rawCandles);
-
-  // If live feed is not provided, generate a live dynamic signal (CALL or PUT)
-  if(candles.length < AI_CONFIG.minCandles){
-
-    const isCall = Math.random() >= 0.5;
-    const confidence = Math.floor(Math.random() * 18) + 78; // 78% to 95%
-    const strength = confidence >= 86 ? "STRONG" : "MEDIUM";
-    const calculatedRsi = isCall ? (56 + Math.random() * 12) : (32 + Math.random() * 12);
-
-    const callReasons = [
-      "EMA 9 cross above EMA 21 confirmed",
-      "RSI bullish momentum zone active",
-      "MACD histogram positive crossover",
-      "Bullish candle structure rejection",
-      "Strong short-term buyer pressure"
-    ];
-
-    const putReasons = [
-      "EMA 9 cross below EMA 21 confirmed",
-      "RSI bearish momentum breakdown",
-      "MACD histogram negative crossover",
-      "Bearish candle structure rejection",
-      "Strong short-term seller pressure"
-    ];
-
-    return {
-      signal: isCall ? "CALL" : "PUT",
-      confidence: confidence,
-      strength: strength,
-      reasons: isCall ? callReasons : putReasons,
-      indicators: { rsi: calculatedRsi },
-      hasData: true
+    let signalResult = {
+      signal: "NEUTRAL",
+      confidence: "LOW",
+      reason: "No confluence found. Waiting for aligned trend & momentum.",
+      indicators: {
+        price: price.toFixed(5),
+        ema9: lastEma9.toFixed(5),
+        ema21: lastEma21.toFixed(5),
+        ema200: lastEma200.toFixed(5),
+        rsi: lastRsi.toFixed(1),
+        macdHist: lastMacdHist.toFixed(6),
+        trend: isUpTrend ? "BULLISH" : isDownTrend ? "BEARISH" : "SIDEWAYS"
+      }
     };
-  }
 
-  const closes = candles.map(c=>c.close);
-  const ema9 = EMA(closes,AI_CONFIG.emaFast);
-  const ema21 = EMA(closes,AI_CONFIG.emaMedium);
-  const ema50 = EMA(closes,AI_CONFIG.emaSlow);
-  const rsi = RSI(closes,AI_CONFIG.rsiPeriod);
-  const macd = MACD(closes);
-  const atr = ATR(candles,AI_CONFIG.atrPeriod);
-  const last = candles[candles.length-1];
-  const previous = candles[candles.length-2];
-  const structure = candleStructure(last);
-
-  let callScore = 0;
-  let putScore = 0;
-  const callReasons = [];
-  const putReasons = [];
-
-  if(ema9 > ema21){ callScore += 18; callReasons.push("EMA 9 above EMA 21"); }
-  else { putScore += 18; putReasons.push("EMA 9 below EMA 21"); }
-
-  if(ema21 > ema50){ callScore += 14; callReasons.push("EMA 21 above EMA 50"); }
-  else { putScore += 14; putReasons.push("EMA 21 below EMA 50"); }
-
-  if(rsi >= 50){ callScore += 15; callReasons.push("RSI bullish zone"); }
-  else { putScore += 15; putReasons.push("RSI bearish zone"); }
-
-  if(macd && macd.histogram > 0){ callScore += 18; callReasons.push("MACD histogram positive"); }
-  else { putScore += 18; putReasons.push("MACD histogram negative"); }
-
-  const lookback = Math.min(5,candles.length-1);
-  const momentum = last.close - candles[candles.length-1-lookback].close;
-  if(momentum > 0){ callScore += 12; callReasons.push("Short-term momentum bullish"); }
-  else { putScore += 12; putReasons.push("Short-term momentum bearish"); }
-
-  if(structure.bullish){ callScore += 10; callReasons.push("Bullish candle structure"); }
-  else { putScore += 10; putReasons.push("Bearish candle structure"); }
-
-  let signal = callScore >= putScore ? "CALL" : "PUT";
-  let confidence = Math.floor(Math.random() * 15) + 80;
-  let strength = confidence >= 85 ? "STRONG" : "MEDIUM";
-
-  return {
-    signal,
-    confidence,
-    strength,
-    reasons: signal === "CALL" ? callReasons.slice(0,5) : putReasons.slice(0,5),
-    indicators:{ ema9, ema21, ema50, rsi, macd, atr },
-    hasData: true
-  };
-}
-
-
-/* ============================================================
-   LIVE DATA CONNECTION HOOK
-   ============================================================ */
-
-function updateMarketData(rawCandles){
-  latestCandles = normalizeCandles(rawCandles);
-  const status = document.getElementById("dataStatus");
-  status.textContent = "● LIVE DATA: CONNECTED";
-  status.style.color = "#00ff69";
-}
-
-window.updateMarketData = updateMarketData;
-window.setLiveCandles = updateMarketData;
-window.AISignalEngine = { runAIEngine, updateMarketData, normalizeCandles };
-
-
-/* ============================================================
-   CANVAS SCANNER
-   ============================================================ */
-
-function startCanvasAnimation(){
-  const canvas = document.getElementById("signalCanvas");
-  const ctx = canvas.getContext("2d");
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-
-  canvas.width = rect.width*dpr;
-  canvas.height = rect.height*dpr;
-  ctx.scale(dpr,dpr);
-
-  const width = rect.width;
-  const height = rect.height;
-  const start = performance.now();
-
-  function draw(now){
-    const elapsed = now-start;
-    ctx.clearRect(0,0,width,height);
-    ctx.beginPath();
-
-    for(let x=0; x<=width; x+=3){
-      const progress = x/width;
-      const wave = Math.sin(progress*16 + elapsed*.006) * 15;
-      const wave2 = Math.sin(progress*31 + elapsed*.004) * 6;
-      const y = height/2 + wave + wave2;
-
-      if(x===0) ctx.moveTo(x,y);
-      else ctx.lineTo(x,y);
+    // CALL Signal Condition
+    if (isUpTrend && lastRsi > 50 && lastRsi < 70 && lastMacdHist > 0) {
+      signalResult.signal = "CALL";
+      signalResult.confidence = "HIGH";
+      signalResult.reason = "Strong Bullish Confluence: Price > EMA200, EMA 9/21 Golden Cross, RSI (50-70), Positive MACD.";
+    }
+    // PUT Signal Condition
+    else if (isDownTrend && lastRsi < 50 && lastRsi > 30 && lastMacdHist < 0) {
+      signalResult.signal = "PUT";
+      signalResult.confidence = "HIGH";
+      signalResult.reason = "Strong Bearish Confluence: Price < EMA200, EMA 9/21 Death Cross, RSI (30-50), Negative MACD.";
     }
 
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#00c8ff";
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = "#00c8ff";
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+    return signalResult;
+  }
 
-    if(elapsed < 2500){
-      animationFrame = requestAnimationFrame(draw);
-    }else{
-      cancelAnimationFrame(animationFrame);
+  // --- UI Update & Rendering Logic ---
+  function evaluateEngine() {
+    const res = generateSignal(candles);
+    const ind = res.indicators;
+
+    // Update Indicators Panel
+    document.getElementById('currentPriceDisplay').innerText = ind.price;
+    document.getElementById('emaDisplay').innerText = `${ind.ema9} / ${ind.ema21} / ${ind.ema200}`;
+    document.getElementById('rsiDisplay').innerText = ind.rsi;
+    document.getElementById('macdDisplay').innerText = ind.macdHist;
+    document.getElementById('trendDisplay').innerText = ind.trend;
+
+    // Update Signal Panel
+    const display = document.getElementById('signalDisplay');
+    display.innerText = res.signal;
+    display.className = `signal-badge ${res.signal}`;
+    document.getElementById('signalReason').innerText = res.reason;
+
+    // Log Signal to Table
+    logSignal(res);
+  }
+
+  function logSignal(res) {
+    const historyLog = document.getElementById('historyLog');
+    if (historyLog.children.length === 1 && historyLog.children[0].children.length === 1) {
+      historyLog.innerHTML = ''; // Clear placeholder
+    }
+
+    const row = document.createElement('tr');
+    const time = new Date().toLocaleTimeString();
+    const signalClass = res.signal === 'CALL' ? 'text-call' : res.signal === 'PUT' ? 'text-put' : 'text-neutral';
+
+    row.innerHTML = `
+      <td>${time}</td>
+      <td>${res.indicators.price}</td>
+      <td class="${signalClass}">${res.signal}</td>
+      <td>${res.indicators.rsi}</td>
+      <td style="color: var(--text-muted); font-size: 0.8rem;">${res.reason}</td>
+    `;
+
+    historyLog.insertBefore(row, historyLog.firstChild);
+
+    // Maintain max 15 rows in log
+    if (historyLog.children.length > 15) {
+      historyLog.removeChild(historyLog.lastChild);
     }
   }
 
-  animationFrame = requestAnimationFrame(draw);
-}
-
-
-/* ============================================================
-   ANALYSIS
-   ============================================================ */
-
-function startAnalysis(){
-  generationId++;
-  const thisGeneration = generationId;
-
-  clearTimeout(analysisTimer);
-  if(animationFrame) cancelAnimationFrame(animationFrame);
-
-  const scanner = document.getElementById("scanner");
-  const result = document.getElementById("result");
-  const button = document.getElementById("generateBtn");
-  const scannerText = document.getElementById("scannerText");
-
-  scanner.style.display="block";
-  result.style.display="none";
-  button.disabled=true;
-
-  scannerText.textContent = "Scanning EMA, RSI, MACD, momentum and candle structure...";
-  startCanvasAnimation();
-
-  let step=0;
-  const messages=[
-    "Reading market structure...",
-    "Checking trend alignment...",
-    "Checking RSI momentum...",
-    "Checking MACD confirmation...",
-    "Checking candle structure..."
-  ];
-
-  const messageTimer = setInterval(()=>{
-    if(thisGeneration !== generationId){
-      clearInterval(messageTimer);
-      return;
-    }
-    scannerText.textContent = messages[Math.min(step,messages.length-1)];
-    step++;
-  },400);
-
-  analysisTimer = setTimeout(()=>{
-    clearInterval(messageTimer);
-    if(thisGeneration !== generationId) return;
-    showSignal();
-  },2500);
-}
-
-
-/* ============================================================
-   SHOW RESULT
-   ============================================================ */
-
-function showSignal(){
-  const pair = document.getElementById("pair").value;
-  const expiry = document.getElementById("expiry").value;
-
-  const scanner = document.getElementById("scanner");
-  const result = document.getElementById("result");
-  const button = document.getElementById("generateBtn");
-  const card = document.getElementById("signalCard");
-  const direction = document.getElementById("direction");
-  const confidence = document.getElementById("confidence");
-  const strength = document.getElementById("strength");
-  const resultPair = document.getElementById("resultPair");
-  const resultExpiry = document.getElementById("resultExpiry");
-  const tradeTime = document.getElementById("tradeTime");
-  const reasons = document.getElementById("reasons");
-
-  const analysis = runAIEngine(latestCandles);
-
-  scanner.style.display="none";
-  result.style.display="block";
-  button.disabled=false;
-
-  resultPair.textContent = pair;
-  resultExpiry.textContent = expiry;
-  confidence.textContent = analysis.confidence + "%";
-  strength.textContent = analysis.strength;
-
-  card.className = "signal-card";
-  direction.className = "direction";
-
-  if(analysis.signal === "CALL"){
-    card.classList.add("call");
-    direction.classList.add("call");
-    direction.textContent = "▲ UP (CALL)";
-    tradeTime.textContent = getTradeTime();
-  } else {
-    card.classList.add("put");
-    direction.classList.add("put");
-    direction.textContent = "▼ DOWN (PUT)";
-    tradeTime.textContent = getTradeTime();
-  }
-
-  reasons.innerHTML="";
-  analysis.reasons.forEach(reason=>{
-    const div = document.createElement("div");
-    div.className="reason";
-    div.textContent = "• "+reason;
-    reasons.appendChild(div);
-  });
-
-  if(analysis.indicators && Number.isFinite(analysis.indicators.rsi)){
-    const div = document.createElement("div");
-    div.className="reason";
-    div.textContent = "• RSI: "+analysis.indicators.rsi.toFixed(1);
-    reasons.appendChild(div);
-  }
-}
-
-
-/* ============================================================
-   TRADE TIME
-   ============================================================ */
-
-function getTradeTime(){
-  const now = new Date();
-  now.setMinutes(now.getMinutes()+1);
-  return now.toLocaleTimeString([],{
-    hour:"2-digit",
-    minute:"2-digit",
-    second:"2-digit"
-  });
-}
-
-
-/* ============================================================
-   RESET ON PAIR / EXPIRY CHANGE
-   ============================================================ */
-
-document.getElementById("pair").addEventListener("change",resetResult);
-document.getElementById("expiry").addEventListener("change",resetResult);
-
-function resetResult(){
-  generationId++;
-  clearTimeout(analysisTimer);
-  if(animationFrame) cancelAnimationFrame(animationFrame);
-
-  document.getElementById("scanner").style.display="none";
-  document.getElementById("result").style.display="none";
-  document.getElementById("generateBtn").disabled=false;
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  updateMarketData([]);
-});
+  // Start engine on load
+  window.onload = initMarket;
 </script>
-
 </body>
 </html>
