@@ -384,7 +384,7 @@
         </div>
 
         <div id="signalDisplay" class="signal-badge NEUTRAL">
-          NEUTRAL
+          NO TRADE
         </div>
 
         <div class="trade-timing-box">
@@ -943,17 +943,6 @@
     };
   }
 
-  // --- Dynamic Market Seconds ---
-  function getMarketSeconds() {
-
-    const seconds =
-      new Date().getSeconds();
-
-    return seconds === 0
-      ? 60
-      : seconds;
-  }
-
   // --- Multi-Indicator Confluence Generator ---
 
   function generateSignal(assetKey) {
@@ -1026,23 +1015,19 @@
           ).value
         : "60 SECONDS (1 MIN)";
 
-    // Dynamic market seconds
-    const marketSeconds =
-      getMarketSeconds();
-
     let signalResult = {
 
       asset: assetKey,
 
-      signal: "NEUTRAL",
+      signal: "NO TRADE",
 
       duration: "--",
 
       entryWindow:
-        "Waiting for Signal",
+        "--",
 
       reason:
-        "No confluence found. Waiting for aligned trend & momentum.",
+        "Market is low or neutral. No Trade.",
 
       indicators: {
 
@@ -1083,47 +1068,47 @@
       }
     };
 
-    // CALL Signal Condition
+    // VERY STRONG BUY
     if (
       isUpTrend &&
-      lastRsi > 50 &&
-      lastRsi < 70 &&
+      lastRsi >= 55 &&
+      lastRsi <= 65 &&
       lastMacdHist > 0
     ) {
 
       signalResult.signal =
-        "CALL";
+        "BUY NOW";
 
       signalResult.duration =
         selectedDuration;
 
       signalResult.entryWindow =
-        `BUY NOW within ${marketSeconds} sec`;
+        "BUY NOW";
 
       signalResult.reason =
-        "Bullish Confluence: Price > EMA200, Golden Cross (9/21), RSI (50-70), MACD Positive.";
+        "Very Strong Bullish Confluence: Price > EMA200, EMA9 > EMA21, RSI confirms bullish momentum, MACD Positive.";
 
     }
 
-    // PUT Signal Condition
+    // VERY STRONG SELL
     else if (
       isDownTrend &&
-      lastRsi < 50 &&
-      lastRsi > 30 &&
+      lastRsi >= 35 &&
+      lastRsi <= 45 &&
       lastMacdHist < 0
     ) {
 
       signalResult.signal =
-        "PUT";
+        "SELL NOW";
 
       signalResult.duration =
         selectedDuration;
 
       signalResult.entryWindow =
-        `SELL NOW within ${marketSeconds} sec`;
+        "SELL NOW";
 
       signalResult.reason =
-        "Bearish Confluence: Price < EMA200, Death Cross (9/21), RSI (30-50), MACD Negative.";
+        "Very Strong Bearish Confluence: Price < EMA200, EMA9 < EMA21, RSI confirms bearish momentum, MACD Negative.";
     }
 
     return signalResult;
@@ -1174,10 +1159,24 @@
     display.innerText =
       res.signal;
 
-    display.className =
-      `signal-badge ${res.signal}`;
+    // Keep the same badge styling
+    if (res.signal === "BUY NOW") {
 
-    if (res.signal === "CALL") {
+      display.className =
+        "signal-badge CALL";
+
+    } else if (res.signal === "SELL NOW") {
+
+      display.className =
+        "signal-badge PUT";
+
+    } else {
+
+      display.className =
+        "signal-badge NEUTRAL";
+    }
+
+    if (res.signal === "BUY NOW") {
 
       document.getElementById(
         'durationDisplay'
@@ -1197,11 +1196,11 @@
       document.getElementById(
         'entryWindowDisplay'
       ).style.color =
-        '#38bdf8';
+        'var(--green-call)';
 
     }
 
-    else if (res.signal === "PUT") {
+    else if (res.signal === "SELL NOW") {
 
       document.getElementById(
         'durationDisplay'
@@ -1221,7 +1220,7 @@
       document.getElementById(
         'entryWindowDisplay'
       ).style.color =
-        '#38bdf8';
+        'var(--red-put)';
 
     }
 
@@ -1230,7 +1229,7 @@
       document.getElementById(
         'durationDisplay'
       ).innerText =
-        `Trade Duration: Waiting for Signal`;
+        `Trade Duration: No Trade`;
 
       document.getElementById(
         'durationDisplay'
@@ -1278,9 +1277,9 @@
       new Date().toLocaleTimeString();
 
     const signalClass =
-      res.signal === 'CALL'
+      res.signal === 'BUY NOW'
         ? 'text-call'
-        : res.signal === 'PUT'
+        : res.signal === 'SELL NOW'
           ? 'text-put'
           : 'text-neutral';
 
