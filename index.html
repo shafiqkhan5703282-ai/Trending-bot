@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accurate Signal Confluence Engine</title>
+  <title>Accurate Signal Confluence Engine - Multi-Asset OTC</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -14,6 +14,7 @@
       --red-put: #ef4444;
       --neutral-bg: #334155;
       --border-color: #334155;
+      --accent-color: #3b82f6;
     }
 
     * {
@@ -33,7 +34,7 @@
 
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 950px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -56,6 +57,62 @@
       margin-top: 4px;
     }
 
+    /* Pair Selection Selector Bar */
+    .selector-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .selector-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--accent-color);
+    }
+
+    optgroup {
+      background-color: var(--card-bg);
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    option {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+    }
+
     /* Dashboard Grid */
     .grid {
       display: grid;
@@ -63,7 +120,7 @@
       gap: 20px;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 680px) {
       .grid {
         grid-template-columns: 1fr;
       }
@@ -83,6 +140,13 @@
     .signal-card {
       text-align: center;
       align-items: center;
+    }
+
+    .asset-title-display {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-color);
+      margin-top: 4px;
     }
 
     .signal-badge {
@@ -111,7 +175,7 @@
     }
 
     .signal-reason {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
       min-height: 40px;
     }
@@ -160,7 +224,7 @@
     }
 
     .btn-primary {
-      background-color: #3b82f6;
+      background-color: var(--accent-color);
       color: white;
     }
 
@@ -201,20 +265,86 @@
 
 <div class="container">
   <header>
-    <h1>Confluence Signal Generator</h1>
-    <p>EMA (9/21/200) + RSI (14) + MACD Confirmation Engine</p>
+    <h1>Confluence Live Signal Engine</h1>
+    <p>Pocket Option & Quotex OTC / Live Pairs (EMA + RSI + MACD Signal Confluence)</p>
   </header>
+
+  <!-- Asset / Pair Selector -->
+  <div class="selector-card">
+    <div class="selector-group">
+      <label for="pairSelect">Select Asset / Pair:</label>
+      <select id="pairSelect" onchange="changeAsset()">
+        <!-- Pocket Option & Quotex OTC Currency Pairs -->
+        <optgroup label="Pocket Option & Quotex OTC Currency Pairs">
+          <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
+          <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
+          <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
+          <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
+          <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
+          <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
+
+          <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
+          <option value="GBP/JPY (OTC)">GBP/JPY (OTC)</option>
+          <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
+          <option value="CAD/JPY (OTC)">CAD/JPY (OTC)</option>
+          <option value="USD/INR (OTC)">USD/INR (OTC)</option>
+          <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
+          <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
+          <option value="USD/BDT (OTC)">USD/BDT (OTC)</option>
+          <option value="USD/IDR (OTC)">USD/IDR (OTC)</option>
+          <option value="USD/EGP (OTC)">USD/EGP (OTC)</option>
+          <option value="USD/TRY (OTC)">USD/TRY (OTC)</option>
+          <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
+          <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
+          <option value="USD/COP (OTC)">USD/COP (OTC)</option>
+        </optgroup>
+
+        <!-- OTC Crypto & Commodities -->
+        <optgroup label="Pocket Option & Quotex OTC Crypto & Commodities">
+          <option value="GOLD / USD (OTC)">GOLD / USD (OTC)</option>
+          <option value="SILVER / USD (OTC)">SILVER / USD (OTC)</option>
+          <option value="CRUDE OIL (OTC)">CRUDE OIL (OTC)</option>
+          <option value="BRENT OIL (OTC)">BRENT OIL (OTC)</option>
+          <option value="BTC/USD (OTC)">BTC/USD (OTC)</option>
+          <option value="ETH/USD (OTC)">ETH/USD (OTC)</option>
+        </optgroup>
+
+        <!-- Standard Live Forex Pairs -->
+        <optgroup label="Live Forex Pairs">
+          <option value="EUR/USD">EUR/USD</option>
+          <option value="GBP/USD">GBP/USD</option>
+          <option value="USD/JPY">USD/JPY</option>
+          <option value="AUD/USD">AUD/USD</option>
+          <option value="USD/CAD">USD/CAD</option>
+          <option value="USD/CHF">USD/CHF</option>
+          <option value="EUR/GBP">EUR/GBP</option>
+          <option value="EUR/JPY">EUR/JPY</option>
+          <option value="GBP/JPY">GBP/JPY</option>
+          <option value="AUD/NZD">AUD/NZD</option>
+        </optgroup>
+
+        <!-- Live Crypto & Commodities -->
+        <optgroup label="Live Crypto & Commodities">
+          <option value="BTC/USD">BTC/USD</option>
+          <option value="ETH/USD">ETH/USD</option>
+          <option value="XAU/USD (GOLD)">XAU/USD (GOLD)</option>
+          <option value="XAG/USD (SILVER)">XAG/USD (SILVER)</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
 
   <div class="grid">
     <!-- Live Signal Display -->
     <div class="card signal-card">
       <div>
-        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Latest Generated Signal</span>
+        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Active Asset</span>
+        <div id="activeAssetDisplay" class="asset-title-display">EUR/USD (OTC)</div>
         <div id="signalDisplay" class="signal-badge NEUTRAL">NEUTRAL</div>
       </div>
       <div id="signalReason" class="signal-reason">Waiting for market evaluation...</div>
-      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
-        Price: <span id="currentPriceDisplay" style="color: var(--text-main); font-weight: bold;">0.0000</span>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+        Live Price: <span id="currentPriceDisplay" style="color: var(--text-main); font-weight: bold;">0.0000</span>
       </div>
     </div>
 
@@ -255,6 +385,7 @@
       <thead>
         <tr>
           <th>Time</th>
+          <th>Asset</th>
           <th>Price</th>
           <th>Signal</th>
           <th>RSI</th>
@@ -263,7 +394,7 @@
       </thead>
       <tbody id="historyLog">
         <tr>
-          <td colspan="5" style="text-align: center; color: var(--text-muted);">No signals generated yet.</td>
+          <td colspan="6" style="text-align: center; color: var(--text-muted);">No signals generated yet.</td>
         </tr>
       </tbody>
     </table>
@@ -271,25 +402,99 @@
 </div>
 
 <script>
-  // --- Simulated Market State ---
-  let candles = [];
-  let currentPrice = 1.08500;
+  // --- Asset Configuration Matrix ---
+  const ASSET_DATABASE = {
+    // Pocket Option & Quotex OTC Pairs
+    "EUR/USD (OTC)": { basePrice: 1.08500, volatility: 0.0008, decimals: 5 },
+    "GBP/USD (OTC)": { basePrice: 1.29500, volatility: 0.0010, decimals: 5 },
+    "USD/JPY (OTC)": { basePrice: 151.200, volatility: 0.0800, decimals: 3 },
+    "AUD/CAD (OTC)": { basePrice: 0.91200, volatility: 0.0007, decimals: 5 },
+    "USD/CHF (OTC)": { basePrice: 0.86500, volatility: 0.0007, decimals: 5 },
+    "NZD/USD (OTC)": { basePrice: 0.60200, volatility: 0.0006, decimals: 5 },
+    "EUR/JPY (OTC)": { basePrice: 164.100, volatility: 0.0900, decimals: 3 },
+    "GBP/JPY (OTC)": { basePrice: 196.300, volatility: 0.1000, decimals: 3 },
+    "AUD/USD (OTC)": { basePrice: 0.66500, volatility: 0.0006, decimals: 5 },
+    "CAD/JPY (OTC)": { basePrice: 109.400, volatility: 0.0700, decimals: 3 },
+    "USD/INR (OTC)": { basePrice: 84.050, volatility: 0.050, decimals: 3 },
+    "USD/BRL (OTC)": { basePrice: 5.6800, volatility: 0.0120, decimals: 4 },
+    "USD/PKR (OTC)": { basePrice: 277.50, volatility: 0.150, decimals: 2 },
+    "USD/BDT (OTC)": { basePrice: 119.50, volatility: 0.100, decimals: 2 },
+    "USD/IDR (OTC)": { basePrice: 15500.0, volatility: 12.00, decimals: 1 },
+    "USD/EGP (OTC)": { basePrice: 48.600, volatility: 0.050, decimals: 3 },
+    "USD/TRY (OTC)": { basePrice: 34.200, volatility: 0.040, decimals: 3 },
+    "USD/MXN (OTC)": { basePrice: 19.8500, volatility: 0.0200, decimals: 4 },
+    "USD/ARS (OTC)": { basePrice: 980.00, volatility: 0.800, decimals: 2 },
+    "USD/COP (OTC)": { basePrice: 4250.0, volatility: 5.000, decimals: 1 },
+
+    // OTC Commodities & Crypto
+    "GOLD / USD (OTC)": { basePrice: 2650.00, volatility: 1.50, decimals: 2 },
+    "SILVER / USD (OTC)": { basePrice: 31.800, volatility: 0.080, decimals: 3 },
+    "CRUDE OIL (OTC)": { basePrice: 71.50, volatility: 0.15, decimals: 2 },
+    "BRENT OIL (OTC)": { basePrice: 75.20, volatility: 0.15, decimals: 2 },
+    "BTC/USD (OTC)": { basePrice: 67500.00, volatility: 120.0, decimals: 2 },
+    "ETH/USD (OTC)": { basePrice: 2620.00, volatility: 8.50, decimals: 2 },
+
+    // Live Forex Pairs
+    "EUR/USD": { basePrice: 1.08450, volatility: 0.0005, decimals: 5 },
+    "GBP/USD": { basePrice: 1.29400, volatility: 0.0007, decimals: 5 },
+    "USD/JPY": { basePrice: 151.100, volatility: 0.0600, decimals: 3 },
+    "AUD/USD": { basePrice: 0.66450, volatility: 0.0005, decimals: 5 },
+    "USD/CAD": { basePrice: 1.38200, volatility: 0.0005, decimals: 5 },
+    "USD/CHF": { basePrice: 0.86400, volatility: 0.0005, decimals: 5 },
+    "EUR/GBP": { basePrice: 0.83800, volatility: 0.0004, decimals: 5 },
+    "EUR/JPY": { basePrice: 163.900, volatility: 0.0700, decimals: 3 },
+    "GBP/JPY": { basePrice: 196.100, volatility: 0.0800, decimals: 3 },
+    "AUD/NZD": { basePrice: 1.10200, volatility: 0.0005, decimals: 5 },
+
+    // Live Crypto & Commodities
+    "BTC/USD": { basePrice: 67450.00, volatility: 95.0, decimals: 2 },
+    "ETH/USD": { basePrice: 2615.00, volatility: 6.5, decimals: 2 },
+    "XAU/USD (GOLD)": { basePrice: 2648.50, volatility: 1.20, decimals: 2 },
+    "XAG/USD (SILVER)": { basePrice: 31.750, volatility: 0.060, decimals: 3 }
+  };
+
+  // State
+  let currentAssetKey = "EUR/USD (OTC)";
+  let assetMarketData = {};
   let autoInterval = null;
 
-  // Initialize with 200 historical candles for accurate 200 EMA
-  function initMarket() {
-    for (let i = 0; i < 220; i++) {
-      currentPrice += (Math.random() - 0.495) * 0.0008;
-      candles.push({ close: currentPrice });
-    }
-    evaluateEngine();
+  // Initialize all pairs with historical candles (220 bars each for accurate 200 EMA)
+  function initAllMarkets() {
+    Object.keys(ASSET_DATABASE).forEach(assetKey => {
+      const config = ASSET_DATABASE[assetKey];
+      let price = config.basePrice;
+      let candles = [];
+
+      for (let i = 0; i < 220; i++) {
+        price += (Math.random() - 0.495) * config.volatility;
+        candles.push({ close: price });
+      }
+
+      assetMarketData[assetKey] = {
+        currentPrice: price,
+        candles: candles
+      };
+    });
+
+    updateUI();
+  }
+
+  function changeAsset() {
+    currentAssetKey = document.getElementById('pairSelect').value;
+    document.getElementById('activeAssetDisplay').innerText = currentAssetKey;
+    updateUI();
   }
 
   function tickMarket() {
-    currentPrice += (Math.random() - 0.495) * 0.0008;
-    candles.push({ close: currentPrice });
-    if (candles.length > 300) candles.shift(); // Keep memory lean
-    evaluateEngine();
+    // Tick active asset
+    const config = ASSET_DATABASE[currentAssetKey];
+    const data = assetMarketData[currentAssetKey];
+
+    data.currentPrice += (Math.random() - 0.495) * config.volatility;
+    data.candles.push({ close: data.currentPrice });
+
+    if (data.candles.length > 300) data.candles.shift(); // Keep buffer optimal
+    updateUI();
   }
 
   function toggleAuto() {
@@ -306,7 +511,7 @@
     }
   }
 
-  // --- Core Technical Indicator Calculations ---
+  // --- Core Technical Indicators ---
   function calculateEMA(data, period) {
     const k = 2 / (period + 1);
     let emaArray = [data[0]];
@@ -346,8 +551,10 @@
   }
 
   // --- Multi-Indicator Confluence Generator ---
-  function generateSignal(candles) {
-    const closes = candles.map(c => c.close);
+  function generateSignal(assetKey) {
+    const data = assetMarketData[assetKey];
+    const config = ASSET_DATABASE[assetKey];
+    const closes = data.candles.map(c => c.close);
     const price = closes[closes.length - 1];
 
     const ema9 = calculateEMA(closes, 9);
@@ -366,16 +573,17 @@
     const isDownTrend = price < lastEma200 && lastEma9 < lastEma21;
 
     let signalResult = {
+      asset: assetKey,
       signal: "NEUTRAL",
       confidence: "LOW",
       reason: "No confluence found. Waiting for aligned trend & momentum.",
       indicators: {
-        price: price.toFixed(5),
-        ema9: lastEma9.toFixed(5),
-        ema21: lastEma21.toFixed(5),
-        ema200: lastEma200.toFixed(5),
+        price: price.toFixed(config.decimals),
+        ema9: lastEma9.toFixed(config.decimals),
+        ema21: lastEma21.toFixed(config.decimals),
+        ema200: lastEma200.toFixed(config.decimals),
         rsi: lastRsi.toFixed(1),
-        macdHist: lastMacdHist.toFixed(6),
+        macdHist: lastMacdHist.toFixed(config.decimals),
         trend: isUpTrend ? "BULLISH" : isDownTrend ? "BEARISH" : "SIDEWAYS"
       }
     };
@@ -384,21 +592,21 @@
     if (isUpTrend && lastRsi > 50 && lastRsi < 70 && lastMacdHist > 0) {
       signalResult.signal = "CALL";
       signalResult.confidence = "HIGH";
-      signalResult.reason = "Strong Bullish Confluence: Price > EMA200, EMA 9/21 Golden Cross, RSI (50-70), Positive MACD.";
+      signalResult.reason = "Bullish Confluence: Price > EMA200, Golden Cross (9/21), RSI (50-70), MACD Positive.";
     }
     // PUT Signal Condition
     else if (isDownTrend && lastRsi < 50 && lastRsi > 30 && lastMacdHist < 0) {
       signalResult.signal = "PUT";
       signalResult.confidence = "HIGH";
-      signalResult.reason = "Strong Bearish Confluence: Price < EMA200, EMA 9/21 Death Cross, RSI (30-50), Negative MACD.";
+      signalResult.reason = "Bearish Confluence: Price < EMA200, Death Cross (9/21), RSI (30-50), MACD Negative.";
     }
 
     return signalResult;
   }
 
   // --- UI Update & Rendering Logic ---
-  function evaluateEngine() {
-    const res = generateSignal(candles);
+  function updateUI() {
+    const res = generateSignal(currentAssetKey);
     const ind = res.indicators;
 
     // Update Indicators Panel
@@ -430,6 +638,7 @@
 
     row.innerHTML = `
       <td>${time}</td>
+      <td style="font-weight: 600; color: var(--accent-color);">${res.asset}</td>
       <td>${res.indicators.price}</td>
       <td class="${signalClass}">${res.signal}</td>
       <td>${res.indicators.rsi}</td>
@@ -445,7 +654,7 @@
   }
 
   // Start engine on load
-  window.onload = initMarket;
+  window.onload = initAllMarkets;
 </script>
 </body>
 </html>
