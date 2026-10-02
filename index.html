@@ -15,6 +15,7 @@
       --neutral-bg: #334155;
       --border-color: #334155;
       --accent-color: #3b82f6;
+      --warning-yellow: #f59e0b;
     }
 
     * {
@@ -152,9 +153,9 @@
     .signal-badge {
       font-size: 2.5rem;
       font-weight: 800;
-      padding: 15px 40px;
+      padding: 12px 40px;
       border-radius: 8px;
-      margin: 15px 0;
+      margin: 12px 0 8px 0;
       letter-spacing: 2px;
       width: 100%;
       background-color: var(--neutral-bg);
@@ -174,10 +175,35 @@
       border: 2px solid var(--red-put);
     }
 
+    /* Trade Time Badges */
+    .trade-timing-box {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .time-badge {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--warning-yellow);
+    }
+
+    .entry-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+
     .signal-reason {
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
-      min-height: 40px;
+      min-height: 36px;
     }
 
     /* Indicators Display */
@@ -276,10 +302,10 @@
       <select id="pairSelect" onchange="changeAsset()">
         <!-- Pocket Option & Quotex OTC Currency Pairs -->
         <optgroup label="Pocket Option & Quotex OTC Currency Pairs">
+          <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
           <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
           <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
           <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
-          <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
           <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
           <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
 
@@ -339,8 +365,14 @@
     <div class="card signal-card">
       <div>
         <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Active Asset</span>
-        <div id="activeAssetDisplay" class="asset-title-display">EUR/USD (OTC)</div>
+        <div id="activeAssetDisplay" class="asset-title-display">AUD/CAD (OTC)</div>
         <div id="signalDisplay" class="signal-badge NEUTRAL">NEUTRAL</div>
+
+        <!-- Trade Duration & Entry Time Box -->
+        <div class="trade-timing-box">
+          <div id="durationDisplay" class="time-badge">Trade Duration: Waiting for Signal</div>
+          <div id="entryWindowDisplay" class="entry-badge">Entry Window: --</div>
+        </div>
       </div>
       <div id="signalReason" class="signal-reason">Waiting for market evaluation...</div>
       <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
@@ -388,7 +420,7 @@
           <th>Asset</th>
           <th>Price</th>
           <th>Signal</th>
-          <th>RSI</th>
+          <th>Trade Duration</th>
           <th>Reason</th>
         </tr>
       </thead>
@@ -405,10 +437,10 @@
   // --- Asset Configuration Matrix ---
   const ASSET_DATABASE = {
     // Pocket Option & Quotex OTC Pairs
+    "AUD/CAD (OTC)": { basePrice: 0.91503, volatility: 0.0007, decimals: 5 },
     "EUR/USD (OTC)": { basePrice: 1.08500, volatility: 0.0008, decimals: 5 },
     "GBP/USD (OTC)": { basePrice: 1.29500, volatility: 0.0010, decimals: 5 },
     "USD/JPY (OTC)": { basePrice: 151.200, volatility: 0.0800, decimals: 3 },
-    "AUD/CAD (OTC)": { basePrice: 0.91200, volatility: 0.0007, decimals: 5 },
     "USD/CHF (OTC)": { basePrice: 0.86500, volatility: 0.0007, decimals: 5 },
     "NZD/USD (OTC)": { basePrice: 0.60200, volatility: 0.0006, decimals: 5 },
     "EUR/JPY (OTC)": { basePrice: 164.100, volatility: 0.0900, decimals: 3 },
@@ -454,7 +486,7 @@
   };
 
   // State
-  let currentAssetKey = "EUR/USD (OTC)";
+  let currentAssetKey = "AUD/CAD (OTC)";
   let assetMarketData = {};
   let autoInterval = null;
 
@@ -486,14 +518,13 @@
   }
 
   function tickMarket() {
-    // Tick active asset
     const config = ASSET_DATABASE[currentAssetKey];
     const data = assetMarketData[currentAssetKey];
 
     data.currentPrice += (Math.random() - 0.495) * config.volatility;
     data.candles.push({ close: data.currentPrice });
 
-    if (data.candles.length > 300) data.candles.shift(); // Keep buffer optimal
+    if (data.candles.length > 300) data.candles.shift();
     updateUI();
   }
 
@@ -575,7 +606,8 @@
     let signalResult = {
       asset: assetKey,
       signal: "NEUTRAL",
-      confidence: "LOW",
+      duration: "--",
+      entryWindow: "Waiting for Signal",
       reason: "No confluence found. Waiting for aligned trend & momentum.",
       indicators: {
         price: price.toFixed(config.decimals),
@@ -591,13 +623,15 @@
     // CALL Signal Condition
     if (isUpTrend && lastRsi > 50 && lastRsi < 70 && lastMacdHist > 0) {
       signalResult.signal = "CALL";
-      signalResult.confidence = "HIGH";
+      signalResult.duration = "60 SECONDS (1 MIN)";
+      signalResult.entryWindow = "BUY NOW within first 5s of candle";
       signalResult.reason = "Bullish Confluence: Price > EMA200, Golden Cross (9/21), RSI (50-70), MACD Positive.";
     }
     // PUT Signal Condition
     else if (isDownTrend && lastRsi < 50 && lastRsi > 30 && lastMacdHist < 0) {
       signalResult.signal = "PUT";
-      signalResult.confidence = "HIGH";
+      signalResult.duration = "60 SECONDS (1 MIN)";
+      signalResult.entryWindow = "SELL NOW within first 5s of candle";
       signalResult.reason = "Bearish Confluence: Price < EMA200, Death Cross (9/21), RSI (30-50), MACD Negative.";
     }
 
@@ -620,6 +654,25 @@
     const display = document.getElementById('signalDisplay');
     display.innerText = res.signal;
     display.className = `signal-badge ${res.signal}`;
+
+    // Update Trade Time & Entry Displays
+    if (res.signal === "CALL") {
+      document.getElementById('durationDisplay').innerText = `BUY DURATION: ${res.duration}`;
+      document.getElementById('durationDisplay').style.color = 'var(--green-call)';
+      document.getElementById('entryWindowDisplay').innerText = `⚡ ${res.entryWindow}`;
+      document.getElementById('entryWindowDisplay').style.color = '#38bdf8';
+    } else if (res.signal === "PUT") {
+      document.getElementById('durationDisplay').innerText = `SELL DURATION: ${res.duration}`;
+      document.getElementById('durationDisplay').style.color = 'var(--red-put)';
+      document.getElementById('entryWindowDisplay').innerText = `⚡ ${res.entryWindow}`;
+      document.getElementById('entryWindowDisplay').style.color = '#38bdf8';
+    } else {
+      document.getElementById('durationDisplay').innerText = `Trade Duration: Waiting for Signal`;
+      document.getElementById('durationDisplay').style.color = 'var(--warning-yellow)';
+      document.getElementById('entryWindowDisplay').innerText = `Entry Window: --`;
+      document.getElementById('entryWindowDisplay').style.color = 'var(--text-muted)';
+    }
+
     document.getElementById('signalReason').innerText = res.reason;
 
     // Log Signal to Table
@@ -641,13 +694,12 @@
       <td style="font-weight: 600; color: var(--accent-color);">${res.asset}</td>
       <td>${res.indicators.price}</td>
       <td class="${signalClass}">${res.signal}</td>
-      <td>${res.indicators.rsi}</td>
+      <td style="font-weight: bold; color: var(--warning-yellow);">${res.duration}</td>
       <td style="color: var(--text-muted); font-size: 0.8rem;">${res.reason}</td>
     `;
 
     historyLog.insertBefore(row, historyLog.firstChild);
 
-    // Maintain max 15 rows in log
     if (historyLog.children.length > 15) {
       historyLog.removeChild(historyLog.lastChild);
     }
