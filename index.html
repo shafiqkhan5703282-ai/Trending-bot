@@ -3,102 +3,381 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEEKER BOT - Pocket Option & Quotex Signal Engine</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Accurate Signal Confluence Engine - Multi-Asset OTC</title>
   <style>
-    body { background-color: #0b0e14; color: #ffffff; font-family: sans-serif; }
-    .neon-orange { color: #ff7d00; text-shadow: 0 0 12px rgba(255, 125, 0, 0.7); }
-    .neon-green { color: #00ff66; text-shadow: 0 0 10px rgba(0, 255, 102, 0.5); }
-    .neon-red { color: #ff1744; text-shadow: 0 0 10px rgba(255, 23, 68, 0.5); }
-    
-    .pulse-glow-orange {
-      box-shadow: 0 0 30px rgba(255, 125, 0, 0.6);
-      animation: pulseOrange 1.5s infinite alternate;
-    }
-    .pulse-glow-green {
-      box-shadow: 0 0 30px rgba(0, 255, 102, 0.6);
-      animation: pulseGreen 1.5s infinite alternate;
-    }
-    .pulse-glow-red {
-      box-shadow: 0 0 30px rgba(255, 23, 68, 0.6);
-      animation: pulseRed 1.5s infinite alternate;
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --green-call: #22c55e;
+      --red-put: #ef4444;
+      --neutral-bg: #334155;
+      --border-color: #334155;
+      --accent-color: #3b82f6;
+      --warning-yellow: #f59e0b;
     }
 
-    @keyframes pulseOrange {
-      from { transform: scale(0.98); box-shadow: 0 0 15px rgba(255, 125, 0, 0.4); }
-      to { transform: scale(1.02); box-shadow: 0 0 35px rgba(255, 125, 0, 0.8); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     }
-    @keyframes pulseRed {
-      from { transform: scale(0.98); box-shadow: 0 0 15px rgba(255, 23, 68, 0.4); }
-      to { transform: scale(1.02); box-shadow: 0 0 35px rgba(255, 23, 68, 0.8); }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
     }
-    @keyframes pulseGreen {
-      from { transform: scale(0.98); box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
-      to { transform: scale(1.02); box-shadow: 0 0 35px rgba(0, 255, 102, 0.8); }
+
+    .container {
+      width: 100%;
+      max-width: 950px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
+
+    header {
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      color: var(--text-main);
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Pair & Duration Selector Bar */
+    .selector-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .selector-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--accent-color);
+    }
+
+    optgroup {
+      background-color: var(--card-bg);
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    option {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+    }
+
+    /* Dashboard Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 680px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Signal Card */
+    .signal-card {
+      text-align: center;
+      align-items: center;
+    }
+
+    .asset-title-display {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-color);
+      margin-top: 4px;
+    }
+
+    .signal-badge {
+      font-size: 2.5rem;
+      font-weight: 800;
+      padding: 12px 40px;
+      border-radius: 8px;
+      margin: 12px 0 8px 0;
+      letter-spacing: 2px;
+      width: 100%;
+      background-color: var(--neutral-bg);
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .signal-badge.CALL {
+      background-color: rgba(34, 197, 94, 0.2);
+      color: var(--green-call);
+      border: 2px solid var(--green-call);
+    }
+
+    .signal-badge.PUT {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: var(--red-put);
+      border: 2px solid var(--red-put);
+    }
+
+    /* Trade Time Badges */
+    .trade-timing-box {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .time-badge {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--warning-yellow);
+    }
+
+    .entry-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+
+    .signal-reason {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 36px;
+    }
+
+    /* Indicators Display */
+    .indicator-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .indicator-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+      font-size: 0.95rem;
+    }
+
+    .indicator-item span:first-child {
+      color: var(--text-muted);
+    }
+
+    .indicator-item span:last-child {
+      font-weight: 600;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: var(--neutral-bg);
+      color: var(--text-main);
+    }
+
+    /* History Table */
+    .history-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .text-call { color: var(--green-call); font-weight: bold; }
+    .text-put { color: var(--red-put); font-weight: bold; }
+    .text-neutral { color: var(--text-muted); }
   </style>
 </head>
-<body class="flex flex-col justify-between h-screen p-4 select-none">
+<body>
 
-  <!-- Header -->
-  <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-    <div class="flex items-center gap-2">
-      <div class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
-      <h1 class="font-bold text-lg tracking-wider text-orange-500">SEEKER BOT</h1>
-    </div>
-    <span class="text-xs bg-gray-800 text-orange-400 px-2 py-1 rounded-md border border-orange-500/30">PO & QUOTEX V4.0</span>
-  </div>
+<div class="container">
+  <header>
+    <h1>Confluence Live Signal Engine</h1>
+    <p>Pocket Option & Quotex OTC / Live Pairs (EMA + RSI + MACD Signal Confluence)</p>
+  </header>
 
-  <!-- Asset & Expiration Selectors -->
-  <div class="grid grid-cols-2 gap-2 my-2">
-    <!-- Pair Selection -->
-    <div class="bg-gray-900/90 rounded-xl p-2 border border-gray-800">
-      <label class="block text-[10px] text-orange-400 uppercase tracking-widest mb-1 font-semibold">Active Pair</label>
-      <select id="assetPair" class="w-full bg-gray-950 text-white text-xs p-2 rounded-lg border border-gray-800 focus:outline-none focus:border-orange-500">
-        <!-- Pocket Option & Quotex Top OTC Pairs -->
-        <optgroup label="Pocket Option & Quotex OTC">
-          <option value="EUR/USD (OTC)" selected>EUR/USD (OTC)</option>
+  <!-- Asset & Duration Selector Card -->
+  <div class="selector-card">
+    <div class="selector-group">
+      <label for="pairSelect">Select Asset / Pair:</label>
+      <select id="pairSelect" onchange="changeAsset()">
+        <!-- Pocket Option & Quotex OTC Currency Pairs -->
+        <optgroup label="Pocket Option & Quotex OTC Currency Pairs">
+          <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
+          <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
           <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
           <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
-          <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
-          <option value="USD/CAD (OTC)">USD/CAD (OTC)</option>
-          <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
-          <option value="GBP/JPY (OTC)">GBP/JPY (OTC)</option>
           <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
           <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
+
+          <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
+          <option value="GBP/JPY (OTC)">GBP/JPY (OTC)</option>
+          <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
+          <option value="CAD/JPY (OTC)">CAD/JPY (OTC)</option>
+          <option value="USD/INR (OTC)">USD/INR (OTC)</option>
+          <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
+          <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
+          <option value="USD/BDT (OTC)">USD/BDT (OTC)</option>
+          <option value="USD/IDR (OTC)">USD/IDR (OTC)</option>
+          <option value="USD/EGP (OTC)">USD/EGP (OTC)</option>
+          <option value="USD/TRY (OTC)">USD/TRY (OTC)</option>
+          <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
+          <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
+          <option value="USD/COP (OTC)">USD/COP (OTC)</option>
         </optgroup>
-        <!-- Standard Live Market Pairs -->
-        <optgroup label="Standard Live Forex">
+
+        <!-- OTC Crypto & Commodities -->
+        <optgroup label="Pocket Option & Quotex OTC Crypto & Commodities">
+          <option value="GOLD / USD (OTC)">GOLD / USD (OTC)</option>
+          <option value="SILVER / USD (OTC)">SILVER / USD (OTC)</option>
+          <option value="CRUDE OIL (OTC)">CRUDE OIL (OTC)</option>
+          <option value="BRENT OIL (OTC)">BRENT OIL (OTC)</option>
+          <option value="BTC/USD (OTC)">BTC/USD (OTC)</option>
+          <option value="ETH/USD (OTC)">ETH/USD (OTC)</option>
+        </optgroup>
+
+        <!-- Standard Live Forex Pairs -->
+        <optgroup label="Live Forex Pairs">
           <option value="EUR/USD">EUR/USD</option>
           <option value="GBP/USD">GBP/USD</option>
           <option value="USD/JPY">USD/JPY</option>
-          <option value="AUD/CAD">AUD/CAD</option>
+          <option value="AUD/USD">AUD/USD</option>
+          <option value="USD/CAD">USD/CAD</option>
+          <option value="USD/CHF">USD/CHF</option>
           <option value="EUR/GBP">EUR/GBP</option>
+          <option value="EUR/JPY">EUR/JPY</option>
+          <option value="GBP/JPY">GBP/JPY</option>
+          <option value="AUD/NZD">AUD/NZD</option>
         </optgroup>
-        <!-- Crypto & Commodities -->
-        <optgroup label="Crypto & Commodities">
-          <option value="BTC/USD (Crypto)">Bitcoin (BTC/USD)</option>
-          <option value="ETH/USD (Crypto)">Ethereum (ETH/USD)</option>
-          <option value="GOLD (OTC)">Gold (OTC)</option>
-          <option value="SILVER (OTC)">Silver (OTC)</option>
-          <option value="US CRUDE (OTC)">US Crude (OTC)</option>
+
+        <!-- Live Crypto & Commodities -->
+        <optgroup label="Live Crypto & Commodities">
+          <option value="BTC/USD">BTC/USD</option>
+          <option value="ETH/USD">ETH/USD</option>
+          <option value="XAU/USD (GOLD)">XAU/USD (GOLD)</option>
+          <option value="XAG/USD (SILVER)">XAG/USD (SILVER)</option>
         </optgroup>
       </select>
     </div>
 
-    <!-- Timeframe / Expiration Selection -->
-    <div class="bg-gray-900/90 rounded-xl p-2 border border-gray-800">
-      <label class="block text-[10px] text-orange-400 uppercase tracking-widest mb-1 font-semibold">Expiration Time</label>
-      <select id="expirationTime" class="w-full bg-gray-950 text-white text-xs p-2 rounded-lg border border-gray-800 focus:outline-none focus:border-orange-500">
+    <!-- Trade Expiration Duration Selector -->
+    <div class="selector-group">
+      <label for="durationSelect">Trade Duration:</label>
+      <select id="durationSelect" onchange="updateUI()">
         <option value="3 SECONDS">3 Seconds</option>
         <option value="5 SECONDS">5 Seconds</option>
-        <option value="10 SECONDS">10 Seconds</option>
+        <option value="7 SECONDS">7 Seconds</option>
+        <option value="9 SECONDS">9 Seconds</option>
+        <option value="12 SECONDS">12 Seconds</option>
         <option value="15 SECONDS">15 Seconds</option>
+        <option value="17 SECONDS">17 Seconds</option>
+        <option value="20 SECONDS">20 Seconds</option>
         <option value="30 SECONDS">30 Seconds</option>
-        <option value="1 MINUTE" selected>1 Minute</option>
+        <option value="45 SECONDS">45 Seconds</option>
+        <option value="60 SECONDS (1 MIN)" selected>1 Minute</option>
         <option value="2 MINUTES">2 Minutes</option>
         <option value="3 MINUTES">3 Minutes</option>
         <option value="5 MINUTES">5 Minutes</option>
+        <option value="10 MINUTES">10 Minutes</option>
         <option value="15 MINUTES">15 Minutes</option>
         <option value="30 MINUTES">30 Minutes</option>
         <option value="1 HOUR">1 Hour</option>
@@ -106,143 +385,356 @@
     </div>
   </div>
 
-  <!-- MAIN DISPLAY AREA -->
-  <div id="displayArea" class="flex-1 flex flex-col items-center justify-center my-2">
-    
-    <!-- STATE 1: ANALYZING ANIMATION -->
-    <div id="analyzingState" class="flex flex-col items-center w-full space-y-6">
-      <div class="relative flex items-center justify-center w-36 h-36 border-4 border-orange-500/20 rounded-full">
-        <div class="absolute w-32 h-32 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-xs font-bold text-orange-400">ANALYZING...</span>
-      </div>
+  <div class="grid">
+    <!-- Live Signal Display -->
+    <div class="card signal-card">
+      <div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Active Asset</span>
+        <div id="activeAssetDisplay" class="asset-title-display">AUD/CAD (OTC)</div>
+        <div id="signalDisplay" class="signal-badge NEUTRAL">NEUTRAL</div>
 
-      <div class="w-full max-w-xs space-y-2 text-xs">
-        <div id="step1" class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400">
-          <span>Scanning PO/Quotex market...</span>
-          <span class="status-icon">⏳</span>
+        <!-- Trade Duration & Entry Time Box -->
+        <div class="trade-timing-box">
+          <div id="durationDisplay" class="time-badge">Trade Duration: Waiting for Signal</div>
+          <div id="entryWindowDisplay" class="entry-badge">Entry Window: --</div>
         </div>
-        <div id="step2" class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400">
-          <span>Calculating trend indicators...</span>
-          <span class="status-icon">⏳</span>
-        </div>
-        <div id="step3" class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400">
-          <span>Evaluating signal accuracy...</span>
-          <span class="status-icon">⏳</span>
-        </div>
+      </div>
+      <div id="signalReason" class="signal-reason">Waiting for market evaluation...</div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+        Live Price: <span id="currentPriceDisplay" style="color: var(--text-main); font-weight: bold;">0.0000</span>
       </div>
     </div>
 
-    <!-- STATE 2: SIGNAL RESULT CARD (Hidden initially) -->
-    <div id="signalState" class="hidden flex-col items-center w-full my-auto">
-      <div id="signalBadge" class="w-44 h-44 rounded-full flex flex-col items-center justify-center text-center p-4 pulse-glow-orange bg-orange-950/40 border-2 border-orange-500 mb-6">
-        <span class="text-xs uppercase font-bold tracking-widest text-gray-300">Signal Alert</span>
-        <h2 id="signalType" class="text-2xl font-black neon-orange my-1">BUY (LONG)</h2>
-        <span id="selectedExpDisplay" class="text-[10px] text-orange-300 font-semibold uppercase">1 MIN EXPIRATION</span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
-        <div class="bg-gray-900 p-3 rounded-lg border border-gray-800 text-center">
-          <p class="text-[10px] text-gray-400 uppercase">Signal Strength</p>
-          <p id="signalStrength" class="text-lg font-bold text-orange-400">98%</p>
+    <!-- Live Indicators -->
+    <div class="card">
+      <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Technical Indicators</h3>
+      <div class="indicator-list">
+        <div class="indicator-item">
+          <span>EMA 9 / 21 / 200</span>
+          <span id="emaDisplay">- / - / -</span>
         </div>
-        <div class="bg-gray-900 p-3 rounded-lg border border-gray-800 text-center">
-          <p class="text-[10px] text-gray-400 uppercase">Accuracy Rate</p>
-          <p id="signalAccuracy" class="text-lg font-bold text-orange-400">99%</p>
+        <div class="indicator-item">
+          <span>RSI (14)</span>
+          <span id="rsiDisplay">-</span>
+        </div>
+        <div class="indicator-item">
+          <span>MACD Hist</span>
+          <span id="macdDisplay">-</span>
+        </div>
+        <div class="indicator-item">
+          <span>Trend Bias</span>
+          <span id="trendDisplay">-</span>
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- CONTROL ACTION BUTTON -->
-  <button onclick="getSignal()" class="w-full py-3.5 bg-orange-500 hover:bg-orange-400 text-black font-extrabold rounded-xl shadow-lg shadow-orange-500/30 active:scale-95 transition-all text-sm uppercase tracking-wider mb-2">
-    Get Next Signal
-  </button>
-
-  <!-- Bottom Navigation Bar -->
-  <div class="flex justify-around bg-gray-900 py-2.5 border-t border-gray-800 text-[10px] text-gray-400 rounded-xl">
-    <button class="text-orange-400 font-bold">LIVE SIGNAL</button>
-    <button class="hover:text-white">HISTORY</button>
-    <button class="hover:text-white">SETTINGS</button>
+  <!-- Manual & Auto Controls -->
+  <div class="controls">
+    <button class="btn-primary" onclick="tickMarket()">New Candle Tick</button>
+    <button id="autoBtn" class="btn-secondary" onclick="toggleAuto()">Start Auto Tick (2s)</button>
   </div>
 
-  <script>
-    async function getSignal() {
-      // Toggle to Analyzing State
-      document.getElementById('signalState').classList.add('hidden');
-      document.getElementById('analyzingState').classList.remove('hidden');
-      
-      resetSteps();
+  <!-- Signal Log -->
+  <div class="card history-card">
+    <h3>Signal Audit Log</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Asset</th>
+          <th>Price</th>
+          <th>Signal</th>
+          <th>Trade Duration</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="historyLog">
+        <tr>
+          <td colspan="6" style="text-align: center; color: var(--text-muted);">No signals generated yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-      // Sequential analysis progress stages
-      await delay(500);
-      setStepComplete('step1');
-      await delay(500);
-      setStepComplete('step2');
-      await delay(500);
-      setStepComplete('step3');
-      await delay(300);
+<script>
+  // --- Asset Configuration Matrix ---
+  const ASSET_DATABASE = {
+    // Pocket Option & Quotex OTC Pairs
+    "AUD/CAD (OTC)": { basePrice: 0.91503, volatility: 0.0007, decimals: 5 },
+    "EUR/USD (OTC)": { basePrice: 1.08500, volatility: 0.0008, decimals: 5 },
+    "GBP/USD (OTC)": { basePrice: 1.29500, volatility: 0.0010, decimals: 5 },
+    "USD/JPY (OTC)": { basePrice: 151.200, volatility: 0.0800, decimals: 3 },
+    "USD/CHF (OTC)": { basePrice: 0.86500, volatility: 0.0007, decimals: 5 },
+    "NZD/USD (OTC)": { basePrice: 0.60200, volatility: 0.0006, decimals: 5 },
+    "EUR/JPY (OTC)": { basePrice: 164.100, volatility: 0.0900, decimals: 3 },
+    "GBP/JPY (OTC)": { basePrice: 196.300, volatility: 0.1000, decimals: 3 },
+    "AUD/USD (OTC)": { basePrice: 0.66500, volatility: 0.0006, decimals: 5 },
+    "CAD/JPY (OTC)": { basePrice: 109.400, volatility: 0.0700, decimals: 3 },
+    "USD/INR (OTC)": { basePrice: 84.050, volatility: 0.050, decimals: 3 },
+    "USD/BRL (OTC)": { basePrice: 5.6800, volatility: 0.0120, decimals: 4 },
+    "USD/PKR (OTC)": { basePrice: 277.50, volatility: 0.150, decimals: 2 },
+    "USD/BDT (OTC)": { basePrice: 119.50, volatility: 0.100, decimals: 2 },
+    "USD/IDR (OTC)": { basePrice: 15500.0, volatility: 12.00, decimals: 1 },
+    "USD/EGP (OTC)": { basePrice: 48.600, volatility: 0.050, decimals: 3 },
+    "USD/TRY (OTC)": { basePrice: 34.200, volatility: 0.040, decimals: 3 },
+    "USD/MXN (OTC)": { basePrice: 19.8500, volatility: 0.0200, decimals: 4 },
+    "USD/ARS (OTC)": { basePrice: 980.00, volatility: 0.800, decimals: 2 },
+    "USD/COP (OTC)": { basePrice: 4250.0, volatility: 5.000, decimals: 1 },
 
-      // Generate signal payload
-      const signal = fetchSignalData();
+    // OTC Commodities & Crypto
+    "GOLD / USD (OTC)": { basePrice: 2650.00, volatility: 1.50, decimals: 2 },
+    "SILVER / USD (OTC)": { basePrice: 31.800, volatility: 0.080, decimals: 3 },
+    "CRUDE OIL (OTC)": { basePrice: 71.50, volatility: 0.15, decimals: 2 },
+    "BRENT OIL (OTC)": { basePrice: 75.20, volatility: 0.15, decimals: 2 },
+    "BTC/USD (OTC)": { basePrice: 67500.00, volatility: 120.0, decimals: 2 },
+    "ETH/USD (OTC)": { basePrice: 2620.00, volatility: 8.50, decimals: 2 },
 
-      // Render Result State
-      renderSignal(signal);
-    }
+    // Live Forex Pairs
+    "EUR/USD": { basePrice: 1.08450, volatility: 0.0005, decimals: 5 },
+    "GBP/USD": { basePrice: 1.29400, volatility: 0.0007, decimals: 5 },
+    "USD/JPY": { basePrice: 151.100, volatility: 0.0600, decimals: 3 },
+    "AUD/USD": { basePrice: 0.66450, volatility: 0.0005, decimals: 5 },
+    "USD/CAD": { basePrice: 1.38200, volatility: 0.0005, decimals: 5 },
+    "USD/CHF": { basePrice: 0.86400, volatility: 0.0005, decimals: 5 },
+    "EUR/GBP": { basePrice: 0.83800, volatility: 0.0004, decimals: 5 },
+    "EUR/JPY": { basePrice: 163.900, volatility: 0.0700, decimals: 3 },
+    "GBP/JPY": { basePrice: 196.100, volatility: 0.0800, decimals: 3 },
+    "AUD/NZD": { basePrice: 1.10200, volatility: 0.0005, decimals: 5 },
 
-    function resetSteps() {
-      ['step1', 'step2', 'step3'].forEach(id => {
-        const el = document.getElementById(id);
-        el.className = "flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400";
-        el.querySelector('.status-icon').innerText = '⏳';
-      });
-    }
+    // Live Crypto & Commodities
+    "BTC/USD": { basePrice: 67450.00, volatility: 95.0, decimals: 2 },
+    "ETH/USD": { basePrice: 2615.00, volatility: 6.5, decimals: 2 },
+    "XAU/USD (GOLD)": { basePrice: 2648.50, volatility: 1.20, decimals: 2 },
+    "XAG/USD (SILVER)": { basePrice: 31.750, volatility: 0.060, decimals: 3 }
+  };
 
-    function setStepComplete(id) {
-      const el = document.getElementById(id);
-      el.className = "flex items-center justify-between bg-gray-900 p-2 rounded border border-orange-500/50 text-orange-400";
-      el.querySelector('.status-icon').innerText = '✓';
-    }
+  // State
+  let currentAssetKey = "AUD/CAD (OTC)";
+  let assetMarketData = {};
+  let autoInterval = null;
 
-    function renderSignal(data) {
-      document.getElementById('analyzingState').classList.add('hidden');
-      const signalState = document.getElementById('signalState');
-      const badge = document.getElementById('signalBadge');
-      const signalType = document.getElementById('signalType');
-      const expDisplay = document.getElementById('selectedExpDisplay');
+  // Initialize all pairs with historical candles
+  function initAllMarkets() {
+    Object.keys(ASSET_DATABASE).forEach(assetKey => {
+      const config = ASSET_DATABASE[assetKey];
+      let price = config.basePrice;
+      let candles = [];
 
-      // Update Expiration text display
-      expDisplay.innerText = data.expiration;
-
-      if(data.type === 'CALL') {
-        badge.className = "w-44 h-44 rounded-full flex flex-col items-center justify-center text-center p-4 pulse-glow-green bg-emerald-950/40 border-2 border-emerald-500 mb-6";
-        signalType.className = "text-2xl font-black neon-green my-1";
-        signalType.innerText = "BUY (CALL)";
-      } else {
-        badge.className = "w-44 h-44 rounded-full flex flex-col items-center justify-center text-center p-4 pulse-glow-red bg-red-950/40 border-2 border-red-500 mb-6";
-        signalType.className = "text-2xl font-black neon-red my-1";
-        signalType.innerText = "SELL (PUT)";
+      for (let i = 0; i < 220; i++) {
+        price += (Math.random() - 0.495) * config.volatility;
+        candles.push({ close: price });
       }
 
-      document.getElementById('signalStrength').innerText = data.strength + "%";
-      document.getElementById('signalAccuracy').innerText = data.accuracy + "%";
-
-      signalState.classList.remove('hidden');
-    }
-
-    function fetchSignalData() {
-      const exp = document.getElementById('expirationTime').value;
-      const isCall = Math.random() > 0.5;
-      
-      return {
-        type: isCall ? 'CALL' : 'PUT',
-        expiration: exp + " EXPIRATION",
-        strength: Math.floor(Math.random() * 4) + 96,  // 96% - 99% strength
-        accuracy: Math.floor(Math.random() * 3) + 97    // 97% - 99% high accuracy
+      assetMarketData[assetKey] = {
+        currentPrice: price,
+        candles: candles
       };
+    });
+
+    updateUI();
+  }
+
+  function changeAsset() {
+    currentAssetKey = document.getElementById('pairSelect').value;
+    document.getElementById('activeAssetDisplay').innerText = currentAssetKey;
+    updateUI();
+  }
+
+  function tickMarket() {
+    const config = ASSET_DATABASE[currentAssetKey];
+    const data = assetMarketData[currentAssetKey];
+
+    data.currentPrice += (Math.random() - 0.495) * config.volatility;
+    data.candles.push({ close: data.currentPrice });
+
+    if (data.candles.length > 300) data.candles.shift();
+    updateUI();
+  }
+
+  function toggleAuto() {
+    const btn = document.getElementById('autoBtn');
+    if (autoInterval) {
+      clearInterval(autoInterval);
+      autoInterval = null;
+      btn.innerText = 'Start Auto Tick (2s)';
+      btn.className = 'btn-secondary';
+    } else {
+      autoInterval = setInterval(tickMarket, 2000);
+      btn.innerText = 'Stop Auto Tick';
+      btn.className = 'btn-primary';
+    }
+  }
+
+  // --- Core Technical Indicators ---
+  function calculateEMA(data, period) {
+    const k = 2 / (period + 1);
+    let emaArray = [data[0]];
+    for (let i = 1; i < data.length; i++) {
+      emaArray.push(data[i] * k + emaArray[i - 1] * (1 - k));
+    }
+    return emaArray;
+  }
+
+  function calculateRSI(data, period = 14) {
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = data[i] - data[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    let rsi = [100 - (100 / (1 + avgGain / (avgLoss || 1)))];
+
+    for (let i = period + 1; i < data.length; i++) {
+      const diff = data[i] - data[i - 1];
+      avgGain = (avgGain * (period - 1) + (diff > 0 ? diff : 0)) / period;
+      avgLoss = (avgLoss * (period - 1) + (diff < 0 ? -diff : 0)) / period;
+      rsi.push(100 - (100 / (1 + avgGain / (avgLoss || 1))));
+    }
+    return rsi;
+  }
+
+  function calculateMACD(data, fast = 12, slow = 26, signal = 9) {
+    const emaFast = calculateEMA(data, fast);
+    const emaSlow = calculateEMA(data, slow);
+    const macdLine = emaFast.map((val, idx) => val - emaSlow[idx]);
+    const signalLine = calculateEMA(macdLine, signal);
+    const histogram = macdLine.map((val, idx) => val - signalLine[idx]);
+    return { macdLine, signalLine, histogram };
+  }
+
+  // --- Multi-Indicator Confluence Generator ---
+  function generateSignal(assetKey) {
+    const data = assetMarketData[assetKey];
+    const config = ASSET_DATABASE[assetKey];
+    const closes = data.candles.map(c => c.close);
+    const price = closes[closes.length - 1];
+
+    const ema9 = calculateEMA(closes, 9);
+    const ema21 = calculateEMA(closes, 21);
+    const ema200 = calculateEMA(closes, 200);
+    const rsi = calculateRSI(closes, 14);
+    const macd = calculateMACD(closes, 12, 26, 9);
+
+    const lastEma9 = ema9[ema9.length - 1];
+    const lastEma21 = ema21[ema21.length - 1];
+    const lastEma200 = ema200[ema200.length - 1];
+    const lastRsi = rsi[rsi.length - 1];
+    const lastMacdHist = macd.histogram[macd.histogram.length - 1];
+
+    const isUpTrend = price > lastEma200 && lastEma9 > lastEma21;
+    const isDownTrend = price < lastEma200 && lastEma9 < lastEma21;
+
+    // Get selected duration from dropdown
+    const selectedDuration = document.getElementById('durationSelect') ? document.getElementById('durationSelect').value : "60 SECONDS (1 MIN)";
+
+    let signalResult = {
+      asset: assetKey,
+      signal: "NEUTRAL",
+      duration: "--",
+      entryWindow: "Waiting for Signal",
+      reason: "No confluence found. Waiting for aligned trend & momentum.",
+      indicators: {
+        price: price.toFixed(config.decimals),
+        ema9: lastEma9.toFixed(config.decimals),
+        ema21: lastEma21.toFixed(config.decimals),
+        ema200: lastEma200.toFixed(config.decimals),
+        rsi: lastRsi.toFixed(1),
+        macdHist: lastMacdHist.toFixed(config.decimals),
+        trend: isUpTrend ? "BULLISH" : isDownTrend ? "BEARISH" : "SIDEWAYS"
+      }
+    };
+
+    // CALL Signal Condition
+    if (isUpTrend && lastRsi > 50 && lastRsi < 70 && lastMacdHist > 0) {
+      signalResult.signal = "CALL";
+      signalResult.duration = selectedDuration;
+      signalResult.entryWindow = "BUY NOW within 3 sec time";
+      signalResult.reason = "Bullish Confluence: Price > EMA200, Golden Cross (9/21), RSI (50-70), MACD Positive.";
+    }
+    // PUT Signal Condition
+    else if (isDownTrend && lastRsi < 50 && lastRsi > 30 && lastMacdHist < 0) {
+      signalResult.signal = "PUT";
+      signalResult.duration = selectedDuration;
+      signalResult.entryWindow = "SELL NOW within 3 sec time";
+      signalResult.reason = "Bearish Confluence: Price < EMA200, Death Cross (9/21), RSI (30-50), MACD Negative.";
     }
 
-    function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
-  </script>
+    return signalResult;
+  }
+
+  // --- UI Update & Rendering Logic ---
+  function updateUI() {
+    const res = generateSignal(currentAssetKey);
+    const ind = res.indicators;
+
+    // Update Indicators Panel
+    document.getElementById('currentPriceDisplay').innerText = ind.price;
+    document.getElementById('emaDisplay').innerText = `${ind.ema9} / ${ind.ema21} / ${ind.ema200}`;
+    document.getElementById('rsiDisplay').innerText = ind.rsi;
+    document.getElementById('macdDisplay').innerText = ind.macdHist;
+    document.getElementById('trendDisplay').innerText = ind.trend;
+
+    // Update Signal Panel
+    const display = document.getElementById('signalDisplay');
+    display.innerText = res.signal;
+    display.className = `signal-badge ${res.signal}`;
+
+    // Update Trade Time & Entry Displays
+    if (res.signal === "CALL") {
+      document.getElementById('durationDisplay').innerText = `BUY DURATION: ${res.duration}`;
+      document.getElementById('durationDisplay').style.color = 'var(--green-call)';
+      document.getElementById('entryWindowDisplay').innerText = `⚡ ${res.entryWindow}`;
+      document.getElementById('entryWindowDisplay').style.color = '#38bdf8';
+    } else if (res.signal === "PUT") {
+      document.getElementById('durationDisplay').innerText = `SELL DURATION: ${res.duration}`;
+      document.getElementById('durationDisplay').style.color = 'var(--red-put)';
+      document.getElementById('entryWindowDisplay').innerText = `⚡ ${res.entryWindow}`;
+      document.getElementById('entryWindowDisplay').style.color = '#38bdf8';
+    } else {
+      document.getElementById('durationDisplay').innerText = `Trade Duration: Waiting for Signal`;
+      document.getElementById('durationDisplay').style.color = 'var(--warning-yellow)';
+      document.getElementById('entryWindowDisplay').innerText = `Entry Window: --`;
+      document.getElementById('entryWindowDisplay').style.color = 'var(--text-muted)';
+    }
+
+    document.getElementById('signalReason').innerText = res.reason;
+
+    // Log Signal to Table
+    logSignal(res);
+  }
+
+  function logSignal(res) {
+    const historyLog = document.getElementById('historyLog');
+    if (historyLog.children.length === 1 && historyLog.children[0].children.length === 1) {
+      historyLog.innerHTML = ''; // Clear placeholder
+    }
+
+    const row = document.createElement('tr');
+    const time = new Date().toLocaleTimeString();
+    const signalClass = res.signal === 'CALL' ? 'text-call' : res.signal === 'PUT' ? 'text-put' : 'text-neutral';
+
+    row.innerHTML = `
+      <td>${time}</td>
+      <td style="font-weight: 600; color: var(--accent-color);">${res.asset}</td>
+      <td>${res.indicators.price}</td>
+      <td class="${signalClass}">${res.signal}</td>
+      <td style="font-weight: bold; color: var(--warning-yellow);">${res.duration}</td>
+      <td style="color: var(--text-muted); font-size: 0.8rem;">${res.reason}</td>
+    `;
+
+    historyLog.insertBefore(row, historyLog.firstChild);
+
+    if (historyLog.children.length > 15) {
+      historyLog.removeChild(historyLog.lastChild);
+    }
+  }
+
+  // Start engine on load
+  window.onload = initAllMarkets;
+</script>
 </body>
 </html>
