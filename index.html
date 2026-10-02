@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accurate Signal Confluence Engine - Multi-Asset OTC</title>
-
   <style>
     :root {
       --bg-color: #0f172a;
@@ -291,7 +290,6 @@
     }
   </style>
 </head>
-
 <body>
 
 <div class="container">
@@ -364,11 +362,9 @@
     </div>
 
     <div class="selector-group">
-
       <label for="durationSelect">Trade Duration:</label>
 
       <select id="durationSelect" onchange="updateUI()">
-
         <option value="3 SECONDS">3 Seconds</option>
         <option value="5 SECONDS">5 Seconds</option>
         <option value="7 SECONDS">7 Seconds</option>
@@ -387,9 +383,7 @@
         <option value="15 MINUTES">15 Minutes</option>
         <option value="30 MINUTES">30 Minutes</option>
         <option value="1 HOUR">1 Hour</option>
-
       </select>
-
     </div>
 
   </div>
@@ -431,7 +425,6 @@
       </div>
 
       <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
-
         Live Price:
 
         <span id="currentPriceDisplay"
@@ -535,49 +528,245 @@
 
 const ASSET_DATABASE = {
 
-  "AUD/CAD (OTC)": { basePrice:0.91503, volatility:0.0007, decimals:5 },
-  "EUR/USD (OTC)": { basePrice:1.08500, volatility:0.0008, decimals:5 },
-  "GBP/USD (OTC)": { basePrice:1.29500, volatility:0.0010, decimals:5 },
-  "USD/JPY (OTC)": { basePrice:151.200, volatility:0.0800, decimals:3 },
-  "USD/CHF (OTC)": { basePrice:0.86500, volatility:0.0007, decimals:5 },
-  "NZD/USD (OTC)": { basePrice:0.60200, volatility:0.0006, decimals:5 },
-  "EUR/JPY (OTC)": { basePrice:164.100, volatility:0.0900, decimals:3 },
-  "GBP/JPY (OTC)": { basePrice:196.300, volatility:0.1000, decimals:3 },
-  "AUD/USD (OTC)": { basePrice:0.66500, volatility:0.0006, decimals:5 },
-  "CAD/JPY (OTC)": { basePrice:109.400, volatility:0.0700, decimals:3 },
-  "USD/INR (OTC)": { basePrice:84.050, volatility:0.050, decimals:3 },
-  "USD/BRL (OTC)": { basePrice:5.6800, volatility:0.0120, decimals:4 },
-  "USD/PKR (OTC)": { basePrice:277.50, volatility:0.150, decimals:2 },
-  "USD/BDT (OTC)": { basePrice:119.50, volatility:0.100, decimals:2 },
-  "USD/IDR (OTC)": { basePrice:15500.0, volatility:12.00, decimals:1 },
-  "USD/EGP (OTC)": { basePrice:48.600, volatility:0.050, decimals:3 },
-  "USD/TRY (OTC)": { basePrice:34.200, volatility:0.040, decimals:3 },
-  "USD/MXN (OTC)": { basePrice:19.8500, volatility:0.0200, decimals:4 },
-  "USD/ARS (OTC)": { basePrice:980.00, volatility:0.800, decimals:2 },
-  "USD/COP (OTC)": { basePrice:4250.0, volatility:5.000, decimals:1 },
+  "AUD/CAD (OTC)": {
+    basePrice: 0.91503,
+    volatility: 0.0007,
+    decimals: 5
+  },
 
-  "GOLD / USD (OTC)": { basePrice:2650.00, volatility:1.50, decimals:2 },
-  "SILVER / USD (OTC)": { basePrice:31.800, volatility:0.080, decimals:3 },
-  "CRUDE OIL (OTC)": { basePrice:71.50, volatility:0.15, decimals:2 },
-  "BRENT OIL (OTC)": { basePrice:75.20, volatility:0.15, decimals:2 },
-  "BTC/USD (OTC)": { basePrice:67500.00, volatility:120.0, decimals:2 },
-  "ETH/USD (OTC)": { basePrice:2620.00, volatility:8.50, decimals:2 },
+  "EUR/USD (OTC)": {
+    basePrice: 1.08500,
+    volatility: 0.0008,
+    decimals: 5
+  },
 
-  "EUR/USD": { basePrice:1.08450, volatility:0.0005, decimals:5 },
-  "GBP/USD": { basePrice:1.29400, volatility:0.0007, decimals:5 },
-  "USD/JPY": { basePrice:151.100, volatility:0.0600, decimals:3 },
-  "AUD/USD": { basePrice:0.66450, volatility:0.0005, decimals:5 },
-  "USD/CAD": { basePrice:1.38200, volatility:0.0005, decimals:5 },
-  "USD/CHF": { basePrice:0.86400, volatility:0.0005, decimals:5 },
-  "EUR/GBP": { basePrice:0.83800, volatility:0.0004, decimals:5 },
-  "EUR/JPY": { basePrice:163.900, volatility:0.0700, decimals:3 },
-  "GBP/JPY": { basePrice:196.100, volatility:0.0800, decimals:3 },
-  "AUD/NZD": { basePrice:1.10200, volatility:0.0005, decimals:5 },
+  "GBP/USD (OTC)": {
+    basePrice: 1.29500,
+    volatility: 0.0010,
+    decimals: 5
+  },
 
-  "BTC/USD": { basePrice:67450.00, volatility:95.0, decimals:2 },
-  "ETH/USD": { basePrice:2615.00, volatility:6.5, decimals:2 },
-  "XAU/USD (GOLD)": { basePrice:2648.50, volatility:1.20, decimals:2 },
-  "XAG/USD (SILVER)": { basePrice:31.750, volatility:0.060, decimals:3 }
+  "USD/JPY (OTC)": {
+    basePrice: 151.200,
+    volatility: 0.0800,
+    decimals: 3
+  },
+
+  "USD/CHF (OTC)": {
+    basePrice: 0.86500,
+    volatility: 0.0007,
+    decimals: 5
+  },
+
+  "NZD/USD (OTC)": {
+    basePrice: 0.60200,
+    volatility: 0.0006,
+    decimals: 5
+  },
+
+  "EUR/JPY (OTC)": {
+    basePrice: 164.100,
+    volatility: 0.0900,
+    decimals: 3
+  },
+
+  "GBP/JPY (OTC)": {
+    basePrice: 196.300,
+    volatility: 0.1000,
+    decimals: 3
+  },
+
+  "AUD/USD (OTC)": {
+    basePrice: 0.66500,
+    volatility: 0.0006,
+    decimals: 5
+  },
+
+  "CAD/JPY (OTC)": {
+    basePrice: 109.400,
+    volatility: 0.0700,
+    decimals: 3
+  },
+
+  "USD/INR (OTC)": {
+    basePrice: 84.050,
+    volatility: 0.050,
+    decimals: 3
+  },
+
+  "USD/BRL (OTC)": {
+    basePrice: 5.6800,
+    volatility: 0.0120,
+    decimals: 4
+  },
+
+  "USD/PKR (OTC)": {
+    basePrice: 277.50,
+    volatility: 0.150,
+    decimals: 2
+  },
+
+  "USD/BDT (OTC)": {
+    basePrice: 119.50,
+    volatility: 0.100,
+    decimals: 2
+  },
+
+  "USD/IDR (OTC)": {
+    basePrice: 15500.0,
+    volatility: 12.00,
+    decimals: 1
+  },
+
+  "USD/EGP (OTC)": {
+    basePrice: 48.600,
+    volatility: 0.050,
+    decimals: 3
+  },
+
+  "USD/TRY (OTC)": {
+    basePrice: 34.200,
+    volatility: 0.040,
+    decimals: 3
+  },
+
+  "USD/MXN (OTC)": {
+    basePrice: 19.8500,
+    volatility: 0.0200,
+    decimals: 4
+  },
+
+  "USD/ARS (OTC)": {
+    basePrice: 980.00,
+    volatility: 0.800,
+    decimals: 2
+  },
+
+  "USD/COP (OTC)": {
+    basePrice: 4250.0,
+    volatility: 5.000,
+    decimals: 1
+  },
+
+  "GOLD / USD (OTC)": {
+    basePrice: 2650.00,
+    volatility: 1.50,
+    decimals: 2
+  },
+
+  "SILVER / USD (OTC)": {
+    basePrice: 31.800,
+    volatility: 0.080,
+    decimals: 3
+  },
+
+  "CRUDE OIL (OTC)": {
+    basePrice: 71.50,
+    volatility: 0.15,
+    decimals: 2
+  },
+
+  "BRENT OIL (OTC)": {
+    basePrice: 75.20,
+    volatility: 0.15,
+    decimals: 2
+  },
+
+  "BTC/USD (OTC)": {
+    basePrice: 67500.00,
+    volatility: 120.0,
+    decimals: 2
+  },
+
+  "ETH/USD (OTC)": {
+    basePrice: 2620.00,
+    volatility: 8.50,
+    decimals: 2
+  },
+
+  "EUR/USD": {
+    basePrice: 1.08450,
+    volatility: 0.0005,
+    decimals: 5
+  },
+
+  "GBP/USD": {
+    basePrice: 1.29400,
+    volatility: 0.0007,
+    decimals: 5
+  },
+
+  "USD/JPY": {
+    basePrice: 151.100,
+    volatility: 0.0600,
+    decimals: 3
+  },
+
+  "AUD/USD": {
+    basePrice: 0.66450,
+    volatility: 0.0005,
+    decimals: 5
+  },
+
+  "USD/CAD": {
+    basePrice: 1.38200,
+    volatility: 0.0005,
+    decimals: 5
+  },
+
+  "USD/CHF": {
+    basePrice: 0.86400,
+    volatility: 0.0005,
+    decimals: 5
+  },
+
+  "EUR/GBP": {
+    basePrice: 0.83800,
+    volatility: 0.0004,
+    decimals: 5
+  },
+
+  "EUR/JPY": {
+    basePrice: 163.900,
+    volatility: 0.0700,
+    decimals: 3
+  },
+
+  "GBP/JPY": {
+    basePrice: 196.100,
+    volatility: 0.0800,
+    decimals: 3
+  },
+
+  "AUD/NZD": {
+    basePrice: 1.10200,
+    volatility: 0.0005,
+    decimals: 5
+  },
+
+  "BTC/USD": {
+    basePrice: 67450.00,
+    volatility: 95.0,
+    decimals: 2
+  },
+
+  "ETH/USD": {
+    basePrice: 2615.00,
+    volatility: 6.5,
+    decimals: 2
+  },
+
+  "XAU/USD (GOLD)": {
+    basePrice: 2648.50,
+    volatility: 1.20,
+    decimals: 2
+  },
+
+  "XAG/USD (SILVER)": {
+    basePrice: 31.750,
+    volatility: 0.060,
+    decimals: 3
+  }
 
 };
 
@@ -612,10 +801,8 @@ function initAllMarkets() {
     }
 
     assetMarketData[assetKey] = {
-
       currentPrice: price,
       candles: candles
-
     };
 
   });
@@ -631,13 +818,9 @@ function initAllMarkets() {
 function changeAsset() {
 
   currentAssetKey =
-    document.getElementById(
-      'pairSelect'
-    ).value;
+    document.getElementById('pairSelect').value;
 
-  document.getElementById(
-    'activeAssetDisplay'
-  ).innerText =
+  document.getElementById('activeAssetDisplay').innerText =
     currentAssetKey;
 
   updateUI();
@@ -696,19 +879,14 @@ function toggleAuto() {
   } else {
 
     autoInterval =
-      setInterval(
-        tickMarket,
-        2000
-      );
+      setInterval(tickMarket, 2000);
 
     btn.innerText =
       'Stop Auto Tick';
 
     btn.className =
       'btn-primary';
-
   }
-
 }
 
 
@@ -723,16 +901,11 @@ function calculateEMA(data, period) {
 
   let emaArray = [data[0]];
 
-  for (
-    let i = 1;
-    i < data.length;
-    i++
-  ) {
+  for (let i = 1; i < data.length; i++) {
 
     emaArray.push(
       data[i] * k +
-      emaArray[i - 1] *
-      (1 - k)
+      emaArray[i - 1] * (1 - k)
     );
 
   }
@@ -745,30 +918,21 @@ function calculateEMA(data, period) {
    RSI
 ========================= */
 
-function calculateRSI(
-  data,
-  period = 14
-) {
+function calculateRSI(data, period = 14) {
 
   let gains = 0;
   let losses = 0;
 
-  for (
-    let i = 1;
-    i <= period;
-    i++
-  ) {
+  for (let i = 1; i <= period; i++) {
 
     const diff =
-      data[i] -
-      data[i - 1];
+      data[i] - data[i - 1];
 
     if (diff >= 0) {
       gains += diff;
     } else {
       losses -= diff;
     }
-
   }
 
   let avgGain =
@@ -778,7 +942,6 @@ function calculateRSI(
     losses / period;
 
   let rsi = [
-
     100 -
     (
       100 /
@@ -788,7 +951,6 @@ function calculateRSI(
         (avgLoss || 1)
       )
     )
-
   ];
 
   for (
@@ -798,25 +960,21 @@ function calculateRSI(
   ) {
 
     const diff =
-      data[i] -
-      data[i - 1];
+      data[i] - data[i - 1];
 
     avgGain =
       (
-        avgGain *
-        (period - 1) +
+        avgGain * (period - 1) +
         (diff > 0 ? diff : 0)
       ) / period;
 
     avgLoss =
       (
-        avgLoss *
-        (period - 1) +
+        avgLoss * (period - 1) +
         (diff < 0 ? -diff : 0)
       ) / period;
 
     rsi.push(
-
       100 -
       (
         100 /
@@ -826,7 +984,6 @@ function calculateRSI(
           (avgLoss || 1)
         )
       )
-
     );
 
   }
@@ -847,22 +1004,15 @@ function calculateMACD(
 ) {
 
   const emaFast =
-    calculateEMA(
-      data,
-      fast
-    );
+    calculateEMA(data, fast);
 
   const emaSlow =
-    calculateEMA(
-      data,
-      slow
-    );
+    calculateEMA(data, slow);
 
   const macdLine =
     emaFast.map(
       (val, idx) =>
-        val -
-        emaSlow[idx]
+        val - emaSlow[idx]
     );
 
   const signalLine =
@@ -874,22 +1024,88 @@ function calculateMACD(
   const histogram =
     macdLine.map(
       (val, idx) =>
-        val -
-        signalLine[idx]
+        val - signalLine[idx]
     );
 
   return {
-
     macdLine,
     signalLine,
     histogram
-
   };
 }
 
 
 /* =========================
-   SIGNAL ENGINE
+   DURATION PARSER
+========================= */
+
+function getDurationSeconds() {
+
+  const value =
+    document.getElementById(
+      'durationSelect'
+    ).value;
+
+  if (value.includes("3 SECONDS"))
+    return 3;
+
+  if (value.includes("5 SECONDS"))
+    return 5;
+
+  if (value.includes("7 SECONDS"))
+    return 7;
+
+  if (value.includes("9 SECONDS"))
+    return 9;
+
+  if (value.includes("12 SECONDS"))
+    return 12;
+
+  if (value.includes("15 SECONDS"))
+    return 15;
+
+  if (value.includes("17 SECONDS"))
+    return 17;
+
+  if (value.includes("20 SECONDS"))
+    return 20;
+
+  if (value.includes("30 SECONDS"))
+    return 30;
+
+  if (value.includes("45 SECONDS"))
+    return 45;
+
+  if (value.includes("60 SECONDS"))
+    return 60;
+
+  if (value.includes("2 MINUTES"))
+    return 120;
+
+  if (value.includes("3 MINUTES"))
+    return 180;
+
+  if (value.includes("5 MINUTES"))
+    return 300;
+
+  if (value.includes("10 MINUTES"))
+    return 600;
+
+  if (value.includes("15 MINUTES"))
+    return 900;
+
+  if (value.includes("30 MINUTES"))
+    return 1800;
+
+  if (value.includes("1 HOUR"))
+    return 3600;
+
+  return 60;
+}
+
+
+/* =========================
+   STRICT SIGNAL ENGINE
 ========================= */
 
 function generateSignal(assetKey) {
@@ -906,33 +1122,19 @@ function generateSignal(assetKey) {
     );
 
   const price =
-    closes[
-      closes.length - 1
-    ];
+    closes[closes.length - 1];
 
   const ema9 =
-    calculateEMA(
-      closes,
-      9
-    );
+    calculateEMA(closes, 9);
 
   const ema21 =
-    calculateEMA(
-      closes,
-      21
-    );
+    calculateEMA(closes, 21);
 
   const ema200 =
-    calculateEMA(
-      closes,
-      200
-    );
+    calculateEMA(closes, 200);
 
   const rsi =
-    calculateRSI(
-      closes,
-      14
-    );
+    calculateRSI(closes, 14);
 
   const macd =
     calculateMACD(
@@ -948,72 +1150,387 @@ function generateSignal(assetKey) {
   const lastEma21 =
     ema21[ema21.length - 1];
 
+  const previousEma9 =
+    ema9[ema9.length - 2];
+
+  const previousEma21 =
+    ema21[ema21.length - 2];
+
   const lastEma200 =
     ema200[ema200.length - 1];
 
   const lastRsi =
     rsi[rsi.length - 1];
 
+  const previousRsi =
+    rsi[rsi.length - 2];
+
   const lastMacdHist =
     macd.histogram[
       macd.histogram.length - 1
     ];
 
-  /*
-     Balanced trend detection
-  */
+  const previousMacdHist =
+    macd.histogram[
+      macd.histogram.length - 2
+    ];
 
-  const bullishTrend =
+  const duration =
+    getDurationSeconds();
+
+
+  /*
+   * RECENT PRICE MOMENTUM
+   */
+
+  const p1 =
+    closes[closes.length - 1];
+
+  const p2 =
+    closes[closes.length - 2];
+
+  const p3 =
+    closes[closes.length - 3];
+
+  const p4 =
+    closes[closes.length - 4];
+
+  const p5 =
+    closes[closes.length - 5];
+
+  const bullishMomentum =
+    p1 > p2 &&
+    p2 > p3 &&
+    p3 >= p4;
+
+  const bearishMomentum =
+    p1 < p2 &&
+    p2 < p3 &&
+    p3 <= p4;
+
+
+  /*
+   * SHORT-TERM MOMENTUM
+   */
+
+  const shortMomentumUp =
+    p1 > p3 &&
+    p3 > p5;
+
+  const shortMomentumDown =
+    p1 < p3 &&
+    p3 < p5;
+
+
+  /*
+   * EMA TREND
+   */
+
+  const emaBull =
+    lastEma9 > lastEma21 &&
+    lastEma9 >= previousEma9 &&
+    lastEma21 >= previousEma21;
+
+  const emaBear =
+    lastEma9 < lastEma21 &&
+    lastEma9 <= previousEma9 &&
+    lastEma21 <= previousEma21;
+
+
+  /*
+   * LONG-TERM TREND
+   */
+
+  const trendBull =
     price > lastEma200 &&
     lastEma9 > lastEma21;
 
-  const bearishTrend =
+  const trendBear =
     price < lastEma200 &&
     lastEma9 < lastEma21;
 
 
   /*
-     Strong bullish confirmation
-  */
+   * RSI MOMENTUM
+   */
 
-  const bullishMomentum =
-    lastRsi >= 55 &&
+  const rsiBull =
+    lastRsi >= 52 &&
     lastRsi <= 68 &&
-    lastMacdHist > 0;
+    lastRsi > previousRsi;
+
+  const rsiBear =
+    lastRsi <= 48 &&
+    lastRsi >= 32 &&
+    lastRsi < previousRsi;
 
 
   /*
-     Strong bearish confirmation
-  */
+   * MACD MOMENTUM
+   */
 
-  const bearishMomentum =
-    lastRsi >= 32 &&
-    lastRsi <= 45 &&
-    lastMacdHist < 0;
+  const macdBull =
+    lastMacdHist > 0 &&
+    lastMacdHist >= previousMacdHist;
 
-
-  const selectedDuration =
-    document.getElementById(
-      'durationSelect'
-    )
-    ? document.getElementById(
-        'durationSelect'
-      ).value
-    : "60 SECONDS (1 MIN)";
+  const macdBear =
+    lastMacdHist < 0 &&
+    lastMacdHist <= previousMacdHist;
 
 
-  let signalResult = {
+  /*
+   * PRICE STRUCTURE
+   */
+
+  const structureBull =
+    p1 > p2 &&
+    p2 >= p3 &&
+    p1 > lastEma9;
+
+  const structureBear =
+    p1 < p2 &&
+    p2 <= p3 &&
+    p1 < lastEma9;
+
+
+  /*
+   * AVOID EXTREME RSI
+   */
+
+  const safeBullRSI =
+    lastRsi < 70;
+
+  const safeBearRSI =
+    lastRsi > 30;
+
+
+  /*
+   * DURATION-BASED STRICTNESS
+   *
+   * Short duration = maximum confirmation.
+   */
+
+  let requiredScore;
+
+  if (duration <= 9) {
+
+    requiredScore = 8;
+
+  } else if (duration <= 30) {
+
+    requiredScore = 7;
+
+  } else if (duration <= 60) {
+
+    requiredScore = 7;
+
+  } else if (duration <= 300) {
+
+    requiredScore = 6;
+
+  } else {
+
+    requiredScore = 6;
+
+  }
+
+
+  /*
+   * BULLISH SCORE
+   */
+
+  let bullishScore = 0;
+
+  if (trendBull)
+    bullishScore++;
+
+  if (emaBull)
+    bullishScore++;
+
+  if (rsiBull)
+    bullishScore++;
+
+  if (macdBull)
+    bullishScore++;
+
+  if (bullishMomentum)
+    bullishScore++;
+
+  if (shortMomentumUp)
+    bullishScore++;
+
+  if (structureBull)
+    bullishScore++;
+
+  if (safeBullRSI)
+    bullishScore++;
+
+
+  /*
+   * BEARISH SCORE
+   */
+
+  let bearishScore = 0;
+
+  if (trendBear)
+    bearishScore++;
+
+  if (emaBear)
+    bearishScore++;
+
+  if (rsiBear)
+    bearishScore++;
+
+  if (macdBear)
+    bearishScore++;
+
+  if (bearishMomentum)
+    bearishScore++;
+
+  if (shortMomentumDown)
+    bearishScore++;
+
+  if (structureBear)
+    bearishScore++;
+
+  if (safeBearRSI)
+    bearishScore++;
+
+
+  /*
+   * FINAL SIGNAL
+   */
+
+  let finalSignal =
+    "NO TRADE";
+
+  let reason =
+    "Strong confirmation not available. No Trade.";
+
+  if (
+    bullishScore >= requiredScore &&
+    bullishScore > bearishScore &&
+    trendBull &&
+    emaBull &&
+    rsiBull &&
+    macdBull
+  ) {
+
+    finalSignal =
+      "BUY NOW";
+
+    reason =
+      `Strong Bullish Confluence: ${bullishScore}/8 confirmations aligned. Trend, EMA, RSI, MACD and momentum agree.`;
+
+  }
+
+  else if (
+    bearishScore >= requiredScore &&
+    bearishScore > bullishScore &&
+    trendBear &&
+    emaBear &&
+    rsiBear &&
+    macdBear
+  ) {
+
+    finalSignal =
+      "SELL NOW";
+
+    reason =
+      `Strong Bearish Confluence: ${bearishScore}/8 confirmations aligned. Trend, EMA, RSI, MACD and momentum agree.`;
+
+  }
+
+
+  /*
+   * EXTRA PROTECTION FOR VERY SHORT TRADES
+   */
+
+  if (duration <= 9) {
+
+    const ultraBull =
+      trendBull &&
+      emaBull &&
+      rsiBull &&
+      macdBull &&
+      bullishMomentum &&
+      shortMomentumUp &&
+      structureBull &&
+      safeBullRSI;
+
+    const ultraBear =
+      trendBear &&
+      emaBear &&
+      rsiBear &&
+      macdBear &&
+      bearishMomentum &&
+      shortMomentumDown &&
+      structureBear &&
+      safeBearRSI;
+
+    if (finalSignal === "BUY NOW" && !ultraBull) {
+
+      finalSignal =
+        "NO TRADE";
+
+      reason =
+        "Short-duration confirmation is not strong enough. No Trade.";
+
+    }
+
+    if (finalSignal === "SELL NOW" && !ultraBear) {
+
+      finalSignal =
+        "NO TRADE";
+
+      reason =
+        "Short-duration confirmation is not strong enough. No Trade.";
+
+    }
+
+  }
+
+
+  /*
+   * CONFLICT PROTECTION
+   */
+
+  if (
+    Math.abs(
+      bullishScore - bearishScore
+    ) < 2
+  ) {
+
+    finalSignal =
+      "NO TRADE";
+
+    reason =
+      "Bullish and bearish confirmations are too close. No Trade.";
+
+  }
+
+
+  return {
 
     asset: assetKey,
 
-    signal: "NO TRADE",
+    signal: finalSignal,
 
-    duration: "--",
+    duration:
+      finalSignal === "NO TRADE"
+        ? "--"
+        : document.getElementById(
+            'durationSelect'
+          ).value,
 
-    entryWindow: "--",
+    entryWindow:
+      finalSignal === "BUY NOW"
+        ? "BUY NOW"
+        : finalSignal === "SELL NOW"
+          ? "SELL NOW"
+          : "--",
 
-    reason:
-      "Market is low, mixed or neutral. No Trade.",
+    reason: reason,
 
     indicators: {
 
@@ -1046,9 +1563,9 @@ function generateSignal(assetKey) {
         ),
 
       trend:
-        bullishTrend
+        trendBull
           ? "BULLISH"
-          : bearishTrend
+          : trendBear
             ? "BEARISH"
             : "SIDEWAYS"
 
@@ -1056,65 +1573,11 @@ function generateSignal(assetKey) {
 
   };
 
-
-  /*
-     BUY
-  */
-
-  if (
-    bullishTrend &&
-    bullishMomentum
-  ) {
-
-    signalResult.signal =
-      "BUY NOW";
-
-    signalResult.duration =
-      selectedDuration;
-
-    signalResult.entryWindow =
-      "BUY NOW";
-
-    signalResult.reason =
-      "Strong Bullish Confluence: Price above EMA200, EMA9 above EMA21, RSI confirms bullish momentum and MACD is positive.";
-
-  }
-
-
-  /*
-     SELL
-  */
-
-  else if (
-    bearishTrend &&
-    bearishMomentum
-  ) {
-
-    signalResult.signal =
-      "SELL NOW";
-
-    signalResult.duration =
-      selectedDuration;
-
-    signalResult.entryWindow =
-      "SELL NOW";
-
-    signalResult.reason =
-      "Strong Bearish Confluence: Price below EMA200, EMA9 below EMA21, RSI confirms bearish momentum and MACD is negative.";
-
-  }
-
-
-  /*
-     Otherwise NO TRADE
-  */
-
-  return signalResult;
 }
 
 
 /* =========================
-   UI UPDATE
+   UPDATE UI
 ========================= */
 
 function updateUI() {
@@ -1168,22 +1631,14 @@ function updateUI() {
     res.signal;
 
 
-  /*
-     SAME COLORS
-  */
-
-  if (
-    res.signal === "BUY NOW"
-  ) {
+  if (res.signal === "BUY NOW") {
 
     display.className =
       "signal-badge CALL";
 
   }
 
-  else if (
-    res.signal === "SELL NOW"
-  ) {
+  else if (res.signal === "SELL NOW") {
 
     display.className =
       "signal-badge PUT";
@@ -1198,13 +1653,7 @@ function updateUI() {
   }
 
 
-  /*
-     BUY DISPLAY
-  */
-
-  if (
-    res.signal === "BUY NOW"
-  ) {
+  if (res.signal === "BUY NOW") {
 
     document.getElementById(
       'durationDisplay'
@@ -1229,14 +1678,7 @@ function updateUI() {
 
   }
 
-
-  /*
-     SELL DISPLAY
-  */
-
-  else if (
-    res.signal === "SELL NOW"
-  ) {
+  else if (res.signal === "SELL NOW") {
 
     document.getElementById(
       'durationDisplay'
@@ -1260,11 +1702,6 @@ function updateUI() {
       'var(--red-put)';
 
   }
-
-
-  /*
-     NO TRADE
-  */
 
   else {
 
@@ -1303,7 +1740,7 @@ function updateUI() {
 
 
 /* =========================
-   AUDIT LOG
+   HISTORY
 ========================= */
 
 function logSignal(res) {
@@ -1329,8 +1766,7 @@ function logSignal(res) {
 
 
   const time =
-    new Date()
-      .toLocaleTimeString();
+    new Date().toLocaleTimeString();
 
 
   const signalClass =
@@ -1343,12 +1779,11 @@ function logSignal(res) {
 
   row.innerHTML = `
 
-    <td>${time}</td>
+    <td>
+      ${time}
+    </td>
 
-    <td style="
-      font-weight: 600;
-      color: var(--accent-color);
-    ">
+    <td style="font-weight: 600; color: var(--accent-color);">
       ${res.asset}
     </td>
 
@@ -1360,17 +1795,11 @@ function logSignal(res) {
       ${res.signal}
     </td>
 
-    <td style="
-      font-weight: bold;
-      color: var(--warning-yellow);
-    ">
+    <td style="font-weight: bold; color: var(--warning-yellow);">
       ${res.duration}
     </td>
 
-    <td style="
-      color: var(--text-muted);
-      font-size: 0.8rem;
-    ">
+    <td style="color: var(--text-muted); font-size: 0.8rem;">
       ${res.reason}
     </td>
 
@@ -1395,10 +1824,6 @@ function logSignal(res) {
 
 }
 
-
-/* =========================
-   START ENGINE
-========================= */
 
 window.onload =
   initAllMarkets;
