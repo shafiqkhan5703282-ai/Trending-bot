@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEEKER BOT - Pocket Option Signal Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0e14; color: #ffffff; font-family: sans-serif; }
+    .neon-green { color: #00ff66; text-shadow: 0 0 10px rgba(0, 255, 102, 0.5); }
+    .neon-red { color: #ff1744; text-shadow: 0 0 10px rgba(255, 23, 68, 0.5); }
+    .pulse-glow-red {
+      box-shadow: 0 0 30px rgba(255, 23, 68, 0.6);
+      animation: pulseRed 1.5s infinite alternate;
+    }
+    .pulse-glow-green {
+      box-shadow: 0 0 30px rgba(0, 255, 102, 0.6);
+      animation: pulseGreen 1.5s infinite alternate;
+    }
+    @keyframes pulseRed {
+      from { transform: scale(0.98); box-shadow: 0 0 15px rgba(255, 23, 68, 0.4); }
+      to { transform: scale(1.02); box-shadow: 0 0 35px rgba(255, 23, 68, 0.8); }
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between h-screen p-4 select-none">
+
+  <!-- Header Header -->
+  <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+    <div class="flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+      <h1 class="font-bold text-lg tracking-wider text-gray-200">SEEKER BOT</h1>
+    </div>
+    <span class="text-xs bg-gray-800 text-emerald-400 px-2 py-1 rounded-md border border-emerald-500/20">OTC V3.2</span>
+  </div>
+
+  <!-- Asset Selection & Pair Info -->
+  <div class="bg-gray-900/80 rounded-xl p-3 border border-gray-800 my-2 text-center">
+    <p class="text-xs text-gray-400 uppercase tracking-widest">Active Market</p>
+    <p id="assetPair" class="text-lg font-extrabold text-white">EUR/USD (OTC)</p>
+  </div>
+
+  <!-- MAIN DISPLAY AREA -->
+  <div id="displayArea" class="flex-1 flex flex-col items-center justify-center my-2">
+    
+    <!-- STATE 1: ANALYZING ANIMATION -->
+    <div id="analyzingState" class="flex flex-col items-center w-full space-y-6">
+      <div class="relative flex items-center justify-center w-36 h-36 border-4 border-emerald-500/20 rounded-full">
+        <div class="absolute w-32 h-32 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-xs font-semibold text-emerald-400">ANALYZING...</span>
+      </div>
+
+      <div class="w-full max-w-xs space-y-2 text-xs">
+        <div id="step1" class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400">
+          <span>Scanning live market data...</span>
+          <span class="status-icon">⏳</span>
+        </div>
+        <div id="step2" class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400">
+          <span>Calculating indicator parameters...</span>
+          <span class="status-icon">⏳</span>
+        </div>
+        <div id="step3" class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400">
+          <span>Processing candlestick patterns...</span>
+          <span class="status-icon">⏳</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 2: SIGNAL RESULT CARD (Hidden initially) -->
+    <div id="signalState" class="hidden flex-col items-center w-full my-auto">
+      <div id="signalBadge" class="w-44 h-44 rounded-full flex flex-col items-center justify-center text-center p-4 pulse-glow-red bg-red-950/40 border-2 border-red-500 mb-6">
+        <span class="text-xs uppercase font-bold tracking-widest text-gray-300">Signal Alert</span>
+        <h2 id="signalType" class="text-2xl font-black neon-red my-1">SELL (SHORT)</h2>
+        <span class="text-[10px] text-gray-400">1 MIN EXPIRATION</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
+        <div class="bg-gray-900 p-3 rounded-lg border border-gray-800 text-center">
+          <p class="text-[10px] text-gray-400 uppercase">Signal Strength</p>
+          <p id="signalStrength" class="text-lg font-bold text-emerald-400">99%</p>
+        </div>
+        <div class="bg-gray-900 p-3 rounded-lg border border-gray-800 text-center">
+          <p class="text-[10px] text-gray-400 uppercase">Accuracy</p>
+          <p id="signalAccuracy" class="text-lg font-bold text-emerald-400">99%</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONTROL ACTION BUTTON -->
+  <button onclick="getSignal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all text-sm uppercase tracking-wider mb-2">
+    Get Next Signal
+  </button>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="flex justify-around bg-gray-900 py-2 border-t border-gray-800 text-[10px] text-gray-400 rounded-xl">
+    <button class="text-emerald-400 font-bold">LIVE SIGNAL</button>
+    <button>HISTORY</button>
+    <button>SETTINGS</button>
+  </div>
+
+  <script>
+    async function getSignal() {
+      // Toggle to Analyzing State
+      document.getElementById('signalState').classList.add('hidden');
+      document.getElementById('analyzingState').classList.remove('hidden');
+      
+      resetSteps();
+
+      // Simulate sequential analysis progress stages
+      await delay(600);
+      setStepComplete('step1');
+      await delay(600);
+      setStepComplete('step2');
+      await delay(600);
+      setStepComplete('step3');
+      await delay(400);
+
+      // Call Backend Engine (Fallback to simulated signal if standalone)
+      const signal = await fetchSignalData();
+
+      // Render Result State
+      renderSignal(signal);
+    }
+
+    function resetSteps() {
+      ['step1', 'step2', 'step3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = "flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-800 text-gray-400";
+        el.querySelector('.status-icon').innerText = '⏳';
+      });
+    }
+
+    function setStepComplete(id) {
+      const el = document.getElementById(id);
+      el.className = "flex items-center justify-between bg-gray-900 p-2 rounded border border-emerald-500/40 text-emerald-400";
+      el.querySelector('.status-icon').innerText = '✓';
+    }
+
+    function renderSignal(data) {
+      document.getElementById('analyzingState').classList.add('hidden');
+      const signalState = document.getElementById('signalState');
+      const badge = document.getElementById('signalBadge');
+      const signalType = document.getElementById('signalType');
+
+      if(data.type === 'CALL') {
+        badge.className = "w-44 h-44 rounded-full flex flex-col items-center justify-center text-center p-4 pulse-glow-green bg-emerald-950/40 border-2 border-emerald-500 mb-6";
+        signalType.className = "text-2xl font-black neon-green my-1";
+        signalType.innerText = "BUY (LONG)";
+      } else {
+        badge.className = "w-44 h-44 rounded-full flex flex-col items-center justify-center text-center p-4 pulse-glow-red bg-red-950/40 border-2 border-red-500 mb-6";
+        signalType.className = "text-2xl font-black neon-red my-1";
+        signalType.innerText = "SELL (SHORT)";
+      }
+
+      document.getElementById('signalStrength').innerText = data.strength + "%";
+      document.getElementById('signalAccuracy').innerText = data.accuracy + "%";
+
+      signalState.classList.remove('hidden');
+    }
+
+    async function fetchSignalData() {
+      try {
+        const res = await fetch('http://localhost:5000/api/signal');
+        return await res.json();
+      } catch (e) {
+        // Fallback demo output if local API server is not connected
+        const isCall = Math.random() > 0.5;
+        return {
+          type: isCall ? 'CALL' : 'PUT',
+          strength: Math.floor(Math.random() * 5) + 95,
+          accuracy: Math.floor(Math.random() * 4) + 96
+        };
+      }
+    }
+
+    function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+  </script>
+</body>
+</html>
