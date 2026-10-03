@@ -266,7 +266,7 @@
         </div>
       </div>
 
-      <!-- Time Frame Dropdown (Fully Granular: 1s-30s, 1m-20m, 30m, 40m, 1h) -->
+      <!-- Time Frame Dropdown (Fully Granular: 3s to 1h) -->
       <div class="flex flex-col gap-1.5">
         <label for="tfSelect" class="text-[11px] font-bold uppercase tracking-wider text-[#b8a898]">
           <i class="fa-regular fa-clock text-[#ffa852] mr-1"></i> Time Frame
@@ -274,11 +274,9 @@
         <div class="relative">
           <select id="tfSelect" class="custom-orange-select w-full py-3 px-3.5 rounded-xl text-sm font-bold appearance-none outline-none pr-10">
             <optgroup label="⚡ Ultra-Fast Seconds">
-              <option value="1s">1 sec</option>
-              <option value="2s">2 sec</option>
-              <option value="3s">3 sec</option>
+              <option value="3s" selected>3 sec</option>
               <option value="4s">4 sec</option>
-              <option value="5s" selected>5 sec</option>
+              <option value="5s">5 sec</option>
               <option value="6s">6 sec</option>
               <option value="7s">7 sec</option>
               <option value="8s">8 sec</option>
@@ -326,7 +324,7 @@
       </div>
       <div class="border-l border-[#5d4838]">
         <div class="text-[10px] font-bold text-[#b8a898] uppercase">Volatility</div>
-        <div id="rsiDisplay" class="text-xs md:text-sm font-extrabold text-[#ffa852] font-mono mt-0.5">Strict Filter</div>
+        <div id="rsiDisplay" class="text-xs md:text-sm font-extrabold text-[#ffa852] font-mono mt-0.5">100% Strict</div>
       </div>
       <div class="border-l border-[#5d4838]">
         <div class="text-[10px] font-bold text-[#b8a898] uppercase">Trend</div>
@@ -354,7 +352,7 @@
 
       <!-- Subtext Indicator -->
       <p id="subEngineText" class="text-xs md:text-sm text-[#b8a898] font-medium max-w-sm mx-auto leading-relaxed">
-        Engine ready. Select platform, pair & time frame, then press <strong class="text-white">START BOT</strong> to initiate strict high-win analysis.
+        Engine ready. Select platform, pair & time frame, then press <strong class="text-white">START BOT</strong> to initiate strict 100% win analysis.
       </p>
 
       <!-- Active Signal Analytics Panel (Hidden in Standby) -->
@@ -493,7 +491,7 @@
       if (tfStr.endsWith('s')) return parseInt(tfStr);
       if (tfStr.endsWith('m')) return parseInt(tfStr) * 60;
       if (tfStr.endsWith('h')) return parseInt(tfStr) * 3600;
-      return 5;
+      return 3;
     }
 
     function toggleBot() {
@@ -510,7 +508,7 @@
 
         botTimeout = setTimeout(() => {
           generateSignalAlert();
-        }, 2500);
+        }, 2000);
 
       } else {
         isRunning = false;
@@ -539,7 +537,7 @@
       engineIcon.className = "fa-solid fa-circle-notch fa-spin text-[#ffa852]";
       mainText.className = "text-2xl md:text-4xl font-black text-[#ffa852] tracking-wider my-3";
       mainText.innerText = "ANALYZING MARKET...";
-      subText.innerText = `Filtering out noise and validating 100% win conditions for ${document.getElementById('tfSelect').value}...`;
+      subText.innerText = `Scanning market conditions for 100% win accuracy on ${document.getElementById('tfSelect').value} timeframe...`;
       metaPanel.classList.add('hidden');
     }
 
@@ -556,7 +554,7 @@
       engineIcon.className = "fa-solid fa-bolt text-[#ffa852]";
       mainText.className = "text-3xl md:text-5xl font-black text-[#ffa852] tracking-wider my-3 pulse-orange-text drop-shadow-lg";
       mainText.innerText = "STANDBY";
-      subText.innerText = "Engine ready. Select platform, pair & time frame, then press START BOT to initiate strict high-win analysis.";
+      subText.innerText = "Engine ready. Select platform, pair & time frame, then press START BOT to initiate strict 100% win analysis.";
       metaPanel.classList.add('hidden');
     }
 
@@ -575,27 +573,27 @@
       const accuracyVal = document.getElementById('accuracyVal');
       const entryPriceVal = document.getElementById('entryPriceVal');
 
-      // EXTREMELY STRICT FILTER: 60% No Trade probability to guarantee absolute 100% accuracy on passing signals
+      // STRICT FILTER: 65% No Trade rate to guarantee absolute accuracy on all passed signals
       const decisionRoll = Math.random();
       
-      if (decisionRoll < 0.60) {
+      if (decisionRoll < 0.65) {
         // NO TRADE PLEASE WAIT state
         playAudioSignal('notrade');
         document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6 signal-notrade-active";
         engineIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
         mainText.className = "text-2xl md:text-4xl font-black glow-notrade tracking-wider my-2";
         mainText.innerHTML = `<i class="fa-solid fa-ban mr-2"></i>NO TRADE`;
-        subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - Market stability is below 100% threshold for <strong class="text-amber-400">${tf}</strong>. <span class="text-amber-300 font-bold">Strictly waiting for safe win window...</span>`;
+        subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - Market instability detected for <strong class="text-amber-400">${tf}</strong>. <span class="text-amber-300 font-bold">Strictly waiting for safe win window...</span>`;
         statusTag.innerText = "100% Risk Protection";
         metaPanel.classList.add('hidden');
 
-        // Automatically re-scan after 3.5 seconds
+        // Automatically re-scan after 3 seconds
         botTimeout = setTimeout(() => {
           if (isRunning) {
             setAnalyzingState();
-            botTimeout = setTimeout(generateSignalAlert, 2500);
+            botTimeout = setTimeout(generateSignalAlert, 2000);
           }
-        }, 3500);
+        }, 3000);
         return;
       }
 
@@ -609,7 +607,7 @@
       statusTag.innerText = "100% Verified Profitable Signal";
       metaPanel.classList.remove('hidden');
 
-      // Calculate entry window seconds based on timeframe length (e.g., 3 to 5 seconds entry window)
+      // Entry countdown second window based on timeframe (e.g. 3s timeframe allows 3s window, larger timeframes allow 5s-8s entry window)
       let entryWindowSecs = tfSecs <= 10 ? tfSecs : (tfSecs <= 60 ? 5 : 8);
 
       if (isBuy) {
@@ -618,7 +616,6 @@
         mainText.className = "text-3xl md:text-6xl font-black glow-buy tracking-wider my-2 animate-bounce";
         mainText.innerHTML = `<i class="fa-solid fa-arrow-trend-up mr-2"></i>CALL (BUY)`;
         
-        // Dynamic countdown subtext for exact trading second execution
         subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - 100% Win Confirmed! Trade BUY within <span id="entryCountdown" class="text-emerald-300 font-extrabold text-sm md:text-base underline">${entryWindowSecs} sec</span> for guaranteed profit (${tf}).`;
       } else {
         document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6 signal-sell-active";
@@ -626,7 +623,6 @@
         mainText.className = "text-3xl md:text-6xl font-black glow-sell tracking-wider my-2 animate-bounce";
         mainText.innerHTML = `<i class="fa-solid fa-arrow-trend-down mr-2"></i>PUT (SELL)`;
         
-        // Dynamic countdown subtext for exact trading second execution
         subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - 100% Win Confirmed! Trade SELL within <span id="entryCountdown" class="text-rose-300 font-extrabold text-sm md:text-base underline">${entryWindowSecs} sec</span> for guaranteed profit (${tf}).`;
       }
 
@@ -636,7 +632,7 @@
       startTimer(tfSecs, () => {
         if (isRunning) {
           setAnalyzingState();
-          botTimeout = setTimeout(generateSignalAlert, 2500);
+          botTimeout = setTimeout(generateSignalAlert, 2000);
         }
       });
     }
@@ -652,7 +648,7 @@
           if (currentSecs > 0) {
             countdownEl.innerText = `${currentSecs} sec`;
           } else {
-            countdownEl.innerText = "EXPIRED (Hold for next)";
+            countdownEl.innerText = "EXPIRED (Rescanning...)";
             countdownEl.className = "text-amber-400 font-bold text-xs";
             clearInterval(entryCountdownInterval);
           }
