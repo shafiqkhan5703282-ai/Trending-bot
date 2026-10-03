@@ -266,7 +266,7 @@
         </div>
       </div>
 
-      <!-- Time Frame Dropdown (Fully Granular: 3s to 1h) -->
+      <!-- Time Frame Dropdown -->
       <div class="flex flex-col gap-1.5">
         <label for="tfSelect" class="text-[11px] font-bold uppercase tracking-wider text-[#b8a898]">
           <i class="fa-regular fa-clock text-[#ffa852] mr-1"></i> Time Frame
@@ -397,17 +397,34 @@
 
     const marketPairs = {
       "Pocket Option OTC": {
+        // Standard & OTC Currencies
         "EUR/USD (OTC)": 1.08450, "GBP/USD (OTC)": 1.26520, "USD/JPY (OTC)": 154.300,
-        "AUD/CAD (OTC)": 0.89210, "NZD/USD (OTC)": 0.59840, "EUR/GBP (OTC)": 0.85710,
-        "USD/CHF (OTC)": 0.88410, "AUD/USD (OTC)": 0.65420, "USD/BDT (OTC)": 117.500,
-        "USD/PKR (OTC)": 278.400, "USD/INR (OTC)": 83.450, "USD/EGP (OTC)": 47.800,
-        "USD/TRY (OTC)": 32.250, "USD/BRL (OTC)": 5.1240, "USD/MXN (OTC)": 16.850,
-        "USD/IDR (OTC)": 16120.0, "USD/PHP (OTC)": 57.85, "USD/NGN (OTC)": 1380.0
+        "AUD/USD (OTC)": 0.65420, "USD/CAD (OTC)": 1.36800, "USD/CHF (OTC)": 0.88410,
+        "NZD/USD (OTC)": 0.59840, "EUR/GBP (OTC)": 0.85710, "EUR/JPY (OTC)": 165.400,
+        "GBP/JPY (OTC)": 198.200, "AUD/JPY (OTC)": 100.100, "CAD/JPY (OTC)": 111.450,
+        "USD/BRL (OTC)": 5.1240, "USD/INR (OTC)": 83.450, "USD/MXN (OTC)": 16.850,
+        "USD/PHP (OTC)": 57.85, "USD/IDR (OTC)": 16120.0, "USD/ZAR (OTC)": 18.45,
+        "USD/PKR (OTC)": 278.400, "EUR/TRY (OTC)": 32.250, "USD/BDT (OTC)": 117.500,
+        // Cryptocurrencies & Crypto OTC
+        "BTC/USD": 64250.0, "ETH/USD": 3450.0, "LTC/USD": 72.50, "XRP/USD": 0.52,
+        "Bitcoin (OTC)": 64250.0, "Ethereum (OTC)": 3450.0, "Litecoin (OTC)": 72.50,
+        "Ripple (OTC)": 0.52, "Cardano (OTC)": 0.45, "Solana (OTC)": 142.0,
+        "Binance Coin (OTC)": 570.0, "Dogecoin (OTC)": 0.12, "Toncoin (OTC)": 7.40,
+        // Commodities
+        "GOLD (XAU/USD)": 2340.50, "SILVER (XAG/USD)": 29.80, "UK Brent Oil": 85.20,
+        "US Crude Oil": 81.40, "Natural Gas": 2.65, "GOLD (OTC)": 2340.50,
+        // Stocks & Equities OTC
+        "Apple (AAPL)": 214.50, "Apple (OTC)": 214.50, "Tesla (TSLA)": 182.30,
+        "Tesla (OTC)": 182.30, "Microsoft (MSFT)": 448.20, "Microsoft (OTC)": 448.20,
+        "Google (GOOGL)": 178.40, "Google (OTC)": 178.40, "Amazon (OTC)": 186.20,
+        "Netflix (OTC)": 670.0, "Meta / Facebook (OTC)": 502.0, "Alibaba (OTC)": 78.50
       },
       "Pocket Option Live": {
         "EUR/USD": 1.08410, "GBP/USD": 1.26480, "USD/JPY": 154.250,
         "AUD/USD": 0.65380, "USD/CAD": 1.36800, "USD/CHF": 0.88380,
-        "NZD/USD": 0.59800, "BTC/USD": 64250.0, "ETH/USD": 3450.0
+        "NZD/USD": 0.59800, "EUR/GBP": 0.85680, "EUR/JPY": 165.100,
+        "GBP/JPY": 197.800, "BTC/USD": 64250.0, "ETH/USD": 3450.0,
+        "GOLD (XAU/USD)": 2340.50, "SILVER (XAG/USD)": 29.80
       },
       "Quotex OTC": {
         "EUR/USD (OTC)": 1.08450, "GBP/USD (OTC)": 1.26520, "AUD/CHF (OTC)": 0.89210,
@@ -573,11 +590,9 @@
       const accuracyVal = document.getElementById('accuracyVal');
       const entryPriceVal = document.getElementById('entryPriceVal');
 
-      // STRICT FILTER: 65% No Trade rate to guarantee absolute accuracy on all passed signals
       const decisionRoll = Math.random();
       
       if (decisionRoll < 0.65) {
-        // NO TRADE PLEASE WAIT state
         playAudioSignal('notrade');
         document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6 signal-notrade-active";
         engineIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
@@ -587,7 +602,6 @@
         statusTag.innerText = "100% Risk Protection";
         metaPanel.classList.add('hidden');
 
-        // Automatically re-scan after 3 seconds
         botTimeout = setTimeout(() => {
           if (isRunning) {
             setAnalyzingState();
@@ -597,7 +611,6 @@
         return;
       }
 
-      // Confirmed 100% Accurate Signal Generated (BUY or SELL)
       const isBuy = Math.random() > 0.5;
       playAudioSignal(isBuy ? 'buy' : 'sell');
 
@@ -607,7 +620,6 @@
       statusTag.innerText = "100% Verified Profitable Signal";
       metaPanel.classList.remove('hidden');
 
-      // Entry countdown second window based on timeframe (e.g. 3s timeframe allows 3s window, larger timeframes allow 5s-8s entry window)
       let entryWindowSecs = tfSecs <= 10 ? tfSecs : (tfSecs <= 60 ? 5 : 8);
 
       if (isBuy) {
@@ -626,7 +638,6 @@
         subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - 100% Win Confirmed! Trade SELL within <span id="entryCountdown" class="text-rose-300 font-extrabold text-sm md:text-base underline">${entryWindowSecs} sec</span> for guaranteed profit (${tf}).`;
       }
 
-      // Start Entry Window Countdown
       startEntryCountdown(entryWindowSecs);
 
       startTimer(tfSecs, () => {
