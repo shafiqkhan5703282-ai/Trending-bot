@@ -150,7 +150,7 @@
       box-shadow: 0 4px 14px rgba(255, 168, 82, 0.3);
     }
 
-    /* Active Stop Button - Changed to solid WHITE styling */
+    /* Active Stop Button - Solid WHITE styling */
     .btn-active-stop {
       background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%) !important;
       color: #0f172a !important;
@@ -257,7 +257,7 @@
         </div>
       </div>
 
-      <!-- Time Frame Dropdown -->
+      <!-- Time Frame Dropdown (Updated with 3s to 1hr options) -->
       <div class="flex flex-col gap-1.5">
         <label for="tfSelect" class="text-[11px] font-bold uppercase tracking-wider text-[#b8a898]">
           <i class="fa-regular fa-clock text-[#ffa852] mr-1"></i> Time Frame
@@ -266,16 +266,22 @@
           <select id="tfSelect" class="custom-orange-select w-full py-3 px-3.5 rounded-xl text-sm font-bold appearance-none outline-none pr-10">
             <option value="3s">3 sec</option>
             <option value="5s">5 sec</option>
-            <option value="10s">10 sec</option>
+            <option value="7s">7 sec</option>
+            <option value="9s">9 sec</option>
+            <option value="12s">12 sec</option>
             <option value="15s">15 sec</option>
-            <option value="30s">30 sec</option>
-            <option value="1m" selected>1 min</option>
+            <option value="17s">17 sec</option>
+            <option value="20s">20 sec</option>
+            <option value="23s">23 sec</option>
+            <option value="30s" selected>30 sec</option>
+            <option value="1m">1 min</option>
             <option value="2m">2 min</option>
             <option value="3m">3 min</option>
             <option value="5m">5 min</option>
             <option value="10m">10 min</option>
             <option value="15m">15 min</option>
             <option value="30m">30 min</option>
+            <option value="1h">1 hour</option>
           </select>
           <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[#ffa852] pointer-events-none text-xs"></i>
         </div>
@@ -444,6 +450,7 @@
     function parseTfToSeconds(tfStr) {
       if (tfStr.endsWith('s')) return parseInt(tfStr);
       if (tfStr.endsWith('m')) return parseInt(tfStr) * 60;
+      if (tfStr.endsWith('h')) return parseInt(tfStr) * 3600;
       return 60;
     }
 
@@ -564,9 +571,15 @@
       clearInterval(countdownInterval);
 
       const renderTime = () => {
-        const mins = Math.floor(duration / 60);
+        const hrs = Math.floor(duration / 3600);
+        const mins = Math.floor((duration % 3600) / 60);
         const secs = duration % 60;
-        timerVal.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        if (hrs > 0) {
+          timerVal.innerText = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        } else {
+          timerVal.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
       };
 
       renderTime();
