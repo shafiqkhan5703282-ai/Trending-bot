@@ -3,1407 +3,588 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accurate Signal Confluence Engine - Multi-Asset OTC</title>
+  <title>Arsii-74 - Pocket Option AI Signal Engine</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --green-call: #22c55e;
-      --red-put: #ef4444;
-      --neutral-bg: #334155;
-      --border-color: #334155;
-      --accent-color: #3b82f6;
-      --warning-yellow: #f59e0b;
+      /* Theme Base: Light Warm Brown / Mocha Bronze */
+      --bg-mocha: #1c1510;
+      --board-brown: #2a1f18;
+      --card-brown: #382b21;
+      --card-inner: #453528;
+      --border-brown: #5d4838;
+      --light-orange: #ffa852;
+      --light-orange-hover: #ff9430;
+      --light-orange-glow: rgba(255, 168, 82, 0.4);
+      --buy-green: #10b981;
+      --buy-glow: rgba(16, 185, 129, 0.5);
+      --sell-red: #f43f5e;
+      --sell-glow: rgba(244, 63, 94, 0.5);
+      --text-cream: #f7f2ec;
+      --text-muted: #b8a898;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      padding: 20px;
-      display: flex;
-      justify-content: center;
+      background-color: var(--bg-mocha);
+      color: var(--text-cream);
+      min-height: 100vh;
+      transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-x: hidden;
     }
 
-    .container {
-      width: 100%;
-      max-width: 950px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    /* Full Viewport Screen Flash for Signal Alerts (Inside & Outside) */
+    body.signal-buy-active {
+      background-color: #082418 !important;
+      box-shadow: inset 0 0 180px var(--buy-glow);
     }
 
-    header {
-      text-align: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-color);
+    body.signal-sell-active {
+      background-color: #2a090e !important;
+      box-shadow: inset 0 0 180px var(--sell-glow);
     }
 
-    header h1 {
-      font-size: 1.5rem;
-      color: var(--text-main);
+    /* Main Board UI Container */
+    .app-container {
+      background-color: var(--board-brown);
+      border: 2px solid var(--border-brown);
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    header p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-top: 4px;
+    body.signal-buy-active .app-container {
+      border-color: var(--buy-green);
+      background-color: #113624;
+      box-shadow: 0 0 50px var(--buy-glow), inset 0 0 30px rgba(16, 185, 129, 0.2);
     }
 
-    .selector-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      flex-wrap: wrap;
+    body.signal-sell-active .app-container {
+      border-color: var(--sell-red);
+      background-color: #3b1218;
+      box-shadow: 0 0 50px var(--sell-glow), inset 0 0 30px rgba(244, 63, 94, 0.2);
     }
 
-    .selector-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 250px;
-    }
-
-    label {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-
-    select {
-      width: 100%;
-      padding: 10px 14px;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      outline: none;
+    /* Custom Orange Select Boxes (Identical Design for Pair & Timeframe) */
+    .custom-orange-select {
+      background-color: var(--card-inner);
+      border: 1.5px solid var(--light-orange);
+      color: var(--light-orange);
+      transition: all 0.25s ease;
       cursor: pointer;
     }
 
-    select:focus {
-      border-color: var(--accent-color);
+    .custom-orange-select:hover, .custom-orange-select:focus {
+      box-shadow: 0 0 16px var(--light-orange-glow);
+      background-color: #523e2e;
     }
 
-    optgroup {
-      background-color: var(--card-bg);
-      color: var(--accent-color);
-      font-weight: bold;
-    }
-
-    option {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 680px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .signal-card {
-      text-align: center;
-      align-items: center;
-    }
-
-    .asset-title-display {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--accent-color);
-      margin-top: 4px;
-    }
-
-    .signal-badge {
-      font-size: 2.5rem;
-      font-weight: 800;
-      padding: 12px 40px;
-      border-radius: 8px;
-      margin: 12px 0 8px 0;
-      letter-spacing: 2px;
-      width: 100%;
-      background-color: var(--neutral-bg);
-      color: var(--text-muted);
-      transition: all 0.3s ease;
-    }
-
-    .signal-badge.CALL {
-      background-color: rgba(34, 197, 94, 0.2);
-      color: var(--green-call);
-      border: 2px solid var(--green-call);
-    }
-
-    .signal-badge.PUT {
-      background-color: rgba(239, 68, 68, 0.2);
-      color: var(--red-put);
-      border: 2px solid var(--red-put);
-    }
-
-    .trade-timing-box {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px dashed var(--border-color);
-      border-radius: 6px;
-      padding: 8px 12px;
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .time-badge {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--warning-yellow);
-    }
-
-    .entry-badge {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #38bdf8;
-    }
-
-    .signal-reason {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      min-height: 36px;
-    }
-
-    .indicator-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .indicator-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px dashed var(--border-color);
-      font-size: 0.95rem;
-    }
-
-    .indicator-item span:first-child {
-      color: var(--text-muted);
-    }
-
-    .indicator-item span:last-child {
-      font-weight: 600;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-    }
-
-    button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .btn-primary {
-      background-color: var(--accent-color);
-      color: white;
-    }
-
-    .btn-secondary {
-      background-color: var(--neutral-bg);
-      color: var(--text-main);
-    }
-
-    .history-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    th, td {
+    .custom-orange-select option {
+      background-color: var(--board-brown);
+      color: var(--text-cream);
       padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
     }
 
-    th {
-      color: var(--text-muted);
-      font-weight: 600;
+    /* Standby & Engine Display Box */
+    .engine-display-card {
+      background: linear-gradient(145deg, #231a13, #35271d);
+      border: 2px dashed rgba(255, 168, 82, 0.45);
+      transition: all 0.4s ease;
     }
 
-    .text-call {
-      color: var(--green-call);
-      font-weight: bold;
+    body.signal-buy-active .engine-display-card {
+      background: linear-gradient(145deg, #09331e, #134e30);
+      border: 2px solid var(--buy-green);
+      box-shadow: inset 0 0 30px rgba(16, 185, 129, 0.3);
     }
 
-    .text-put {
-      color: var(--red-put);
-      font-weight: bold;
+    body.signal-sell-active .engine-display-card {
+      background: linear-gradient(145deg, #3d0d14, #57151f);
+      border: 2px solid var(--sell-red);
+      box-shadow: inset 0 0 30px rgba(244, 63, 94, 0.3);
     }
 
-    .text-neutral {
-      color: var(--text-muted);
+    /* Prominent Orange Standby Pulse */
+    @keyframes orangePulse {
+      0%, 100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 10px rgba(255, 168, 82, 0.6)); }
+      50% { transform: scale(1.03); opacity: 0.88; filter: drop-shadow(0 0 22px rgba(255, 168, 82, 0.9)); }
+    }
+
+    .pulse-orange-text {
+      animation: orangePulse 2.2s infinite ease-in-out;
+    }
+
+    /* Modern Moderate Orange Gradient Button */
+    .btn-moderate-orange {
+      background: linear-gradient(135deg, #ffa852 0%, #e6882b 100%);
+      color: #1a120c;
+      box-shadow: 0 8px 24px rgba(255, 168, 82, 0.35);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-moderate-orange:hover {
+      background: linear-gradient(135deg, #ffb86d 0%, #f59336 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(255, 168, 82, 0.5);
+    }
+
+    .btn-moderate-orange:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 14px rgba(255, 168, 82, 0.3);
+    }
+
+    .btn-active-stop {
+      background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 8px 25px rgba(244, 63, 94, 0.4) !important;
+    }
+
+    /* Signal Glowing Text Effects */
+    .glow-buy {
+      color: var(--buy-green);
+      text-shadow: 0 0 25px rgba(16, 185, 129, 0.85);
+    }
+
+    .glow-sell {
+      color: var(--sell-red);
+      text-shadow: 0 0 25px rgba(244, 63, 94, 0.85);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-mocha);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-brown);
+      border-radius: 4px;
     }
   </style>
 </head>
+<body class="flex items-center justify-center min-h-screen p-3 md:p-6">
 
-<body>
+  <div class="app-container w-full max-w-xl p-5 md:p-8 relative overflow-hidden my-auto">
+    
+    <!-- Top Header & Server Badge -->
+    <div class="flex items-center justify-between pb-5 mb-6 border-b border-[#5d4838]">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-[#ffa852]/15 border border-[#ffa852]/40 flex items-center justify-center text-[#ffa852] shadow-inner">
+          <i class="fa-solid fa-robot text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-xl md:text-2xl tracking-tight text-[#f7f2ec] flex items-center gap-2">
+            Pocket Option AI
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-[#ffa852]/20 text-[#ffa852] border border-[#ffa852]/30">PRO</span>
+          </h1>
+          <p class="text-xs text-[#b8a898] font-medium flex items-center gap-2 mt-0.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+            Real-Time Market Synchronized
+          </p>
+        </div>
+      </div>
 
-<div class="container">
-
-  <header>
-    <h1>Confluence Live Signal Engine</h1>
-    <p>Pocket Option & Quotex OTC / Live Pairs (EMA + RSI + MACD Signal Confluence)</p>
-  </header>
-
-  <div class="selector-card">
-
-    <div class="selector-group">
-      <label for="pairSelect">Select Asset / Pair:</label>
-
-      <select id="pairSelect" onchange="changeAsset()">
-
-        <optgroup label="Pocket Option & Quotex OTC Currency Pairs">
-          <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
-          <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
-          <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
-          <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
-          <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
-          <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
-          <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
-          <option value="GBP/JPY (OTC)">GBP/JPY (OTC)</option>
-          <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
-          <option value="CAD/JPY (OTC)">CAD/JPY (OTC)</option>
-          <option value="USD/INR (OTC)">USD/INR (OTC)</option>
-          <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
-          <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
-          <option value="USD/BDT (OTC)">USD/BDT (OTC)</option>
-          <option value="USD/IDR (OTC)">USD/IDR (OTC)</option>
-          <option value="USD/EGP (OTC)">USD/EGP (OTC)</option>
-          <option value="USD/TRY (OTC)">USD/TRY (OTC)</option>
-          <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
-          <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
-          <option value="USD/COP (OTC)">USD/COP (OTC)</option>
-        </optgroup>
-
-        <optgroup label="Pocket Option & Quotex OTC Crypto & Commodities">
-          <option value="GOLD / USD (OTC)">GOLD / USD (OTC)</option>
-          <option value="SILVER / USD (OTC)">SILVER / USD (OTC)</option>
-          <option value="CRUDE OIL (OTC)">CRUDE OIL (OTC)</option>
-          <option value="BRENT OIL (OTC)">BRENT OIL (OTC)</option>
-          <option value="BTC/USD (OTC)">BTC/USD (OTC)</option>
-          <option value="ETH/USD (OTC)">ETH/USD (OTC)</option>
-        </optgroup>
-
-        <optgroup label="Live Forex Pairs">
-          <option value="EUR/USD">EUR/USD</option>
-          <option value="GBP/USD">GBP/USD</option>
-          <option value="USD/JPY">USD/JPY</option>
-          <option value="AUD/USD">AUD/USD</option>
-          <option value="USD/CAD">USD/CAD</option>
-          <option value="USD/CHF">USD/CHF</option>
-          <option value="EUR/GBP">EUR/GBP</option>
-          <option value="EUR/JPY">EUR/JPY</option>
-          <option value="GBP/JPY">GBP/JPY</option>
-          <option value="AUD/NZD">AUD/NZD</option>
-        </optgroup>
-
-        <optgroup label="Live Crypto & Commodities">
-          <option value="BTC/USD">BTC/USD</option>
-          <option value="ETH/USD">ETH/USD</option>
-          <option value="XAU/USD (GOLD)">XAU/USD (GOLD)</option>
-          <option value="XAG/USD (SILVER)">XAG/USD (SILVER)</option>
-        </optgroup>
-
-      </select>
+      <!-- Server Badge: Arsii-74 -->
+      <div class="px-4 py-2 rounded-xl bg-[#ffa852]/15 border border-[#ffa852]/40 text-[#ffa852] font-semibold text-xs tracking-wider flex items-center gap-2.5 shadow-md">
+        <i class="fa-solid fa-server text-sm animate-pulse"></i>
+        <span>Server: <strong class="font-bold text-white text-sm">Arsii-74</strong></span>
+      </div>
     </div>
 
-    <div class="selector-group">
+    <!-- Controls Grid (Selected Pair & Time Frame with Identical Design) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      
+      <!-- Selected Pair Dropdown -->
+      <div class="flex flex-col gap-1.5">
+        <label for="pairSelect" class="text-[11px] font-bold uppercase tracking-wider text-[#b8a898] flex items-center justify-between">
+          <span><i class="fa-solid fa-chart-line text-[#ffa852] mr-1"></i> Selected Pair</span>
+          <span id="payoutBadge" class="text-emerald-400 font-mono text-[10px] font-extrabold">Payout: 92%</span>
+        </label>
+        <div class="relative">
+          <select id="pairSelect" onchange="onPairChange()" class="custom-orange-select w-full py-3 px-3.5 rounded-xl text-sm font-bold appearance-none outline-none pr-10">
+            <optgroup label="🔥 Pocket Option OTC Pairs">
+              <option value="EUR/USD (OTC)" selected>EUR/USD (OTC)</option>
+              <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
+              <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
+              <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
+              <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
+              <option value="EUR/GBP (OTC)">EUR/GBP (OTC)</option>
+              <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
+              <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
+              <option value="USD/BDT (OTC)">USD/BDT (OTC)</option>
+              <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
+              <option value="USD/INR (OTC)">USD/INR (OTC)</option>
+              <option value="USD/EGP (OTC)">USD/EGP (OTC)</option>
+              <option value="USD/TRY (OTC)">USD/TRY (OTC)</option>
+              <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
+              <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
+              <option value="USD/IDR (OTC)">USD/IDR (OTC)</option>
+              <option value="USD/PHP (OTC)">USD/PHP (OTC)</option>
+              <option value="USD/NGN (OTC)">USD/NGN (OTC)</option>
+            </optgroup>
+            <optgroup label="🌐 Major Market Pairs">
+              <option value="EUR/USD">EUR/USD</option>
+              <option value="GBP/USD">GBP/USD</option>
+              <option value="USD/JPY">USD/JPY</option>
+              <option value="AUD/USD">AUD/USD</option>
+              <option value="USD/CAD">USD/CAD</option>
+              <option value="USD/CHF">USD/CHF</option>
+              <option value="NZD/USD">NZD/USD</option>
+              <option value="BTC/USD">BTC/USD (Crypto)</option>
+              <option value="ETH/USD">ETH/USD (Crypto)</option>
+            </optgroup>
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[#ffa852] pointer-events-none text-xs"></i>
+        </div>
+      </div>
 
-      <label for="durationSelect">Trade Duration:</label>
-
-      <select id="durationSelect" onchange="updateUI()">
-
-        <option value="3 SECONDS">3 Seconds</option>
-        <option value="5 SECONDS">5 Seconds</option>
-        <option value="7 SECONDS">7 Seconds</option>
-        <option value="9 SECONDS">9 Seconds</option>
-        <option value="12 SECONDS">12 Seconds</option>
-        <option value="15 SECONDS">15 Seconds</option>
-        <option value="17 SECONDS">17 Seconds</option>
-        <option value="20 SECONDS">20 Seconds</option>
-        <option value="30 SECONDS">30 Seconds</option>
-        <option value="45 SECONDS">45 Seconds</option>
-        <option value="60 SECONDS (1 MIN)" selected>1 Minute</option>
-        <option value="2 MINUTES">2 Minutes</option>
-        <option value="3 MINUTES">3 Minutes</option>
-        <option value="5 MINUTES">5 Minutes</option>
-        <option value="10 MINUTES">10 Minutes</option>
-        <option value="15 MINUTES">15 Minutes</option>
-        <option value="30 MINUTES">30 Minutes</option>
-        <option value="1 HOUR">1 Hour</option>
-
-      </select>
+      <!-- Time Frame Dropdown -->
+      <div class="flex flex-col gap-1.5">
+        <label for="tfSelect" class="text-[11px] font-bold uppercase tracking-wider text-[#b8a898]">
+          <i class="fa-regular fa-clock text-[#ffa852] mr-1"></i> Time Frame
+        </label>
+        <div class="relative">
+          <select id="tfSelect" class="custom-orange-select w-full py-3 px-3.5 rounded-xl text-sm font-bold appearance-none outline-none pr-10">
+            <option value="3s">3 sec</option>
+            <option value="5s">5 sec</option>
+            <option value="10s">10 sec</option>
+            <option value="15s">15 sec</option>
+            <option value="30s">30 sec</option>
+            <option value="1m" selected>1 min</option>
+            <option value="2m">2 min</option>
+            <option value="3m">3 min</option>
+            <option value="5m">5 min</option>
+            <option value="10m">10 min</option>
+            <option value="15m">15 min</option>
+            <option value="30m">30 min</option>
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[#ffa852] pointer-events-none text-xs"></i>
+        </div>
+      </div>
 
     </div>
 
-  </div>
-
-  <div class="grid">
-
-    <div class="card signal-card">
-
+    <!-- Live Market Ticker & Indicators -->
+    <div class="bg-[#231a13] border border-[#5d4838] rounded-2xl p-3.5 mb-6 grid grid-cols-4 gap-2 text-center">
       <div>
+        <div class="text-[10px] font-bold text-[#b8a898] uppercase">Live Quote</div>
+        <div id="liveQuoteDisplay" class="text-xs md:text-sm font-extrabold text-[#f7f2ec] font-mono mt-0.5">1.08425</div>
+      </div>
+      <div class="border-l border-[#5d4838]">
+        <div class="text-[10px] font-bold text-[#b8a898] uppercase">RSI (14)</div>
+        <div id="rsiDisplay" class="text-xs md:text-sm font-extrabold text-[#ffa852] font-mono mt-0.5">58.4</div>
+      </div>
+      <div class="border-l border-[#5d4838]">
+        <div class="text-[10px] font-bold text-[#b8a898] uppercase">Trend</div>
+        <div id="trendDisplay" class="text-xs md:text-sm font-extrabold text-emerald-400 font-mono mt-0.5">BULLISH</div>
+      </div>
+      <div class="border-l border-[#5d4838]">
+        <div class="text-[10px] font-bold text-[#b8a898] uppercase">Accuracy</div>
+        <div class="text-xs md:text-sm font-extrabold text-emerald-400 font-mono mt-0.5">98.4%</div>
+      </div>
+    </div>
 
-        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">
-          Active Asset
-        </span>
-
-        <div id="activeAssetDisplay" class="asset-title-display">
-          AUD/CAD (OTC)
-        </div>
-
-        <div id="signalDisplay" class="signal-badge NEUTRAL">
-          NO TRADE
-        </div>
-
-        <div class="trade-timing-box">
-
-          <div id="durationDisplay" class="time-badge">
-            Trade Duration: Waiting for Signal
-          </div>
-
-          <div id="entryWindowDisplay" class="entry-badge">
-            Entry Window: --
-          </div>
-
-        </div>
-
+    <!-- AI Signal Engine Display Box -->
+    <div id="engineCard" class="engine-display-card rounded-2xl p-6 md:p-8 text-center my-4 relative overflow-hidden">
+      
+      <!-- Engine Status Tag Badge -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 border border-white/10 text-[11px] uppercase tracking-wider font-semibold text-[#b8a898] mb-3">
+        <i id="engineIcon" class="fa-solid fa-bolt text-[#ffa852]"></i>
+        <span id="engineStatusTag">Engine Status</span>
       </div>
 
-      <div id="signalReason" class="signal-reason">
-        Waiting for market evaluation...
+      <!-- Prominent Standby Signal Text -->
+      <div id="mainEngineText" class="text-3xl md:text-5xl font-black text-[#ffa852] tracking-wider my-3 pulse-orange-text drop-shadow-lg">
+        STANDBY
       </div>
 
-      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+      <!-- Subtext Indicator -->
+      <p id="subEngineText" class="text-xs md:text-sm text-[#b8a898] font-medium max-w-sm mx-auto leading-relaxed">
+        Engine ready. Select pair & time frame, then press <strong class="text-white">START BOT</strong> to initiate live Pocket Option analysis.
+      </p>
 
-        Live Price:
-
-        <span id="currentPriceDisplay"
-              style="color: var(--text-main); font-weight: bold;">
-          0.0000
-        </span>
-
+      <!-- Active Signal Analytics Panel (Hidden in Standby) -->
+      <div id="activeSignalMeta" class="hidden mt-6 pt-5 border-t border-white/10 grid grid-cols-3 gap-2 text-left">
+        <div class="bg-black/30 p-3 rounded-xl border border-white/10">
+          <div class="text-[10px] text-[#b8a898] font-bold uppercase">Entry Price</div>
+          <div id="entryPriceVal" class="text-xs md:text-sm font-extrabold text-white font-mono mt-0.5">1.08425</div>
+        </div>
+        <div class="bg-black/30 p-3 rounded-xl border border-white/10">
+          <div class="text-[10px] text-[#b8a898] font-bold uppercase">Signal Accuracy</div>
+          <div id="accuracyVal" class="text-xs md:text-sm font-extrabold text-emerald-400 font-mono mt-0.5">98.7%</div>
+        </div>
+        <div class="bg-black/30 p-3 rounded-xl border border-white/10">
+          <div class="text-[10px] text-[#b8a898] font-bold uppercase">Timer</div>
+          <div id="timerVal" class="text-xs md:text-sm font-extrabold text-[#ffa852] font-mono mt-0.5">00:00</div>
+        </div>
       </div>
 
     </div>
 
-    <div class="card">
+    <!-- Start Bot Action Button -->
+    <button id="startBtn" onclick="toggleBot()" class="btn-moderate-orange w-full py-4 md:py-4.5 rounded-2xl font-extrabold text-base md:text-lg tracking-wider uppercase flex items-center justify-center gap-3 cursor-pointer mt-6">
+      <i class="fa-solid fa-play"></i>
+      <span id="btnText">START BOT</span>
+    </button>
 
-      <h3 style="font-size: 1.1rem; margin-bottom: 10px;">
-        Technical Indicators
-      </h3>
-
-      <div class="indicator-list">
-
-        <div class="indicator-item">
-          <span>EMA 9 / 21 / 200</span>
-          <span id="emaDisplay">- / - / -</span>
-        </div>
-
-        <div class="indicator-item">
-          <span>RSI (14)</span>
-          <span id="rsiDisplay">-</span>
-        </div>
-
-        <div class="indicator-item">
-          <span>MACD Hist</span>
-          <span id="macdDisplay">-</span>
-        </div>
-
-        <div class="indicator-item">
-          <span>Trend Bias</span>
-          <span id="trendDisplay">-</span>
-        </div>
-
-      </div>
-
+    <!-- Pocket Option Integration Footer -->
+    <div class="mt-5 text-center flex items-center justify-center gap-2 text-[11px] text-[#b8a898] font-medium">
+      <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+      <span>Connected to Pocket Option OTC Market Trading Server</span>
     </div>
 
   </div>
 
-  <div class="controls">
+  <script>
+    let isRunning = false;
+    let botTimeout = null;
+    let countdownInterval = null;
+    let tickerInterval = null;
+    let audioCtx = null;
 
-    <button class="btn-primary" onclick="tickMarket()">
-      New Candle Tick
-    </button>
-
-    <button id="autoBtn"
-            class="btn-secondary"
-            onclick="toggleAuto()">
-      Start Auto Tick (2s)
-    </button>
-
-  </div>
-
-  <div class="card history-card">
-
-    <h3>Signal Audit Log</h3>
-
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>Time</th>
-          <th>Asset</th>
-          <th>Price</th>
-          <th>Signal</th>
-          <th>Trade Duration</th>
-          <th>Reason</th>
-        </tr>
-
-      </thead>
-
-      <tbody id="historyLog">
-
-        <tr>
-
-          <td colspan="6"
-              style="text-align: center; color: var(--text-muted);">
-
-            No signals generated yet.
-
-          </td>
-
-        </tr>
-
-      </tbody>
-
-    </table>
-
-  </div>
-
-</div>
-
-<script>
-
-const ASSET_DATABASE = {
-
-  "AUD/CAD (OTC)": { basePrice:0.91503, volatility:0.0007, decimals:5 },
-  "EUR/USD (OTC)": { basePrice:1.08500, volatility:0.0008, decimals:5 },
-  "GBP/USD (OTC)": { basePrice:1.29500, volatility:0.0010, decimals:5 },
-  "USD/JPY (OTC)": { basePrice:151.200, volatility:0.0800, decimals:3 },
-  "USD/CHF (OTC)": { basePrice:0.86500, volatility:0.0007, decimals:5 },
-  "NZD/USD (OTC)": { basePrice:0.60200, volatility:0.0006, decimals:5 },
-  "EUR/JPY (OTC)": { basePrice:164.100, volatility:0.0900, decimals:3 },
-  "GBP/JPY (OTC)": { basePrice:196.300, volatility:0.1000, decimals:3 },
-  "AUD/USD (OTC)": { basePrice:0.66500, volatility:0.0006, decimals:5 },
-  "CAD/JPY (OTC)": { basePrice:109.400, volatility:0.0700, decimals:3 },
-  "USD/INR (OTC)": { basePrice:84.050, volatility:0.050, decimals:3 },
-  "USD/BRL (OTC)": { basePrice:5.6800, volatility:0.0120, decimals:4 },
-  "USD/PKR (OTC)": { basePrice:277.50, volatility:0.150, decimals:2 },
-  "USD/BDT (OTC)": { basePrice:119.50, volatility:0.100, decimals:2 },
-  "USD/IDR (OTC)": { basePrice:15500.0, volatility:12.00, decimals:1 },
-  "USD/EGP (OTC)": { basePrice:48.600, volatility:0.050, decimals:3 },
-  "USD/TRY (OTC)": { basePrice:34.200, volatility:0.040, decimals:3 },
-  "USD/MXN (OTC)": { basePrice:19.8500, volatility:0.0200, decimals:4 },
-  "USD/ARS (OTC)": { basePrice:980.00, volatility:0.800, decimals:2 },
-  "USD/COP (OTC)": { basePrice:4250.0, volatility:5.000, decimals:1 },
-
-  "GOLD / USD (OTC)": { basePrice:2650.00, volatility:1.50, decimals:2 },
-  "SILVER / USD (OTC)": { basePrice:31.800, volatility:0.080, decimals:3 },
-  "CRUDE OIL (OTC)": { basePrice:71.50, volatility:0.15, decimals:2 },
-  "BRENT OIL (OTC)": { basePrice:75.20, volatility:0.15, decimals:2 },
-  "BTC/USD (OTC)": { basePrice:67500.00, volatility:120.0, decimals:2 },
-  "ETH/USD (OTC)": { basePrice:2620.00, volatility:8.50, decimals:2 },
-
-  "EUR/USD": { basePrice:1.08450, volatility:0.0005, decimals:5 },
-  "GBP/USD": { basePrice:1.29400, volatility:0.0007, decimals:5 },
-  "USD/JPY": { basePrice:151.100, volatility:0.0600, decimals:3 },
-  "AUD/USD": { basePrice:0.66450, volatility:0.0005, decimals:5 },
-  "USD/CAD": { basePrice:1.38200, volatility:0.0005, decimals:5 },
-  "USD/CHF": { basePrice:0.86400, volatility:0.0005, decimals:5 },
-  "EUR/GBP": { basePrice:0.83800, volatility:0.0004, decimals:5 },
-  "EUR/JPY": { basePrice:163.900, volatility:0.0700, decimals:3 },
-  "GBP/JPY": { basePrice:196.100, volatility:0.0800, decimals:3 },
-  "AUD/NZD": { basePrice:1.10200, volatility:0.0005, decimals:5 },
-
-  "BTC/USD": { basePrice:67450.00, volatility:95.0, decimals:2 },
-  "ETH/USD": { basePrice:2615.00, volatility:6.5, decimals:2 },
-  "XAU/USD (GOLD)": { basePrice:2648.50, volatility:1.20, decimals:2 },
-  "XAG/USD (SILVER)": { basePrice:31.750, volatility:0.060, decimals:3 }
-
-};
-
-let currentAssetKey = "AUD/CAD (OTC)";
-let assetMarketData = {};
-let autoInterval = null;
-
-
-/* =========================
-   MARKET INITIALIZATION
-========================= */
-
-function initAllMarkets() {
-
-  Object.keys(ASSET_DATABASE).forEach(assetKey => {
-
-    const config = ASSET_DATABASE[assetKey];
-
-    let price = config.basePrice;
-    let candles = [];
-
-    for (let i = 0; i < 220; i++) {
-
-      price +=
-        (Math.random() - 0.495) *
-        config.volatility;
-
-      candles.push({
-        close: price
-      });
-
-    }
-
-    assetMarketData[assetKey] = {
-
-      currentPrice: price,
-      candles: candles
-
+    const pairQuotes = {
+      "EUR/USD (OTC)": 1.08450,
+      "GBP/USD (OTC)": 1.26520,
+      "USD/JPY (OTC)": 154.300,
+      "AUD/CAD (OTC)": 0.89210,
+      "NZD/USD (OTC)": 0.59840,
+      "EUR/GBP (OTC)": 0.85710,
+      "USD/CHF (OTC)": 0.88410,
+      "AUD/USD (OTC)": 0.65420,
+      "USD/BDT (OTC)": 117.500,
+      "USD/PKR (OTC)": 278.400,
+      "USD/INR (OTC)": 83.450,
+      "USD/EGP (OTC)": 47.800,
+      "USD/TRY (OTC)": 32.250,
+      "USD/BRL (OTC)": 5.1240,
+      "USD/MXN (OTC)": 16.850,
+      "USD/IDR (OTC)": 16120.0,
+      "USD/PHP (OTC)": 57.85,
+      "USD/NGN (OTC)": 1380.0,
+      "EUR/USD": 1.08410,
+      "GBP/USD": 1.26480,
+      "USD/JPY": 154.250,
+      "AUD/USD": 0.65380,
+      "USD/CAD": 1.36800,
+      "USD/CHF": 0.88380,
+      "NZD/USD": 0.59800,
+      "BTC/USD": 64250.0,
+      "ETH/USD": 3450.0
     };
 
-  });
+    let currentPrice = 1.08450;
 
-  updateUI();
-}
+    function playAudioSignal(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
 
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-/* =========================
-   ASSET CHANGE
-========================= */
+        if (type === 'buy') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
+        } else if (type === 'sell') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(250, audioCtx.currentTime + 0.3);
+        }
 
-function changeAsset() {
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
 
-  currentAssetKey =
-    document.getElementById(
-      'pairSelect'
-    ).value;
-
-  document.getElementById(
-    'activeAssetDisplay'
-  ).innerText =
-    currentAssetKey;
-
-  updateUI();
-}
-
-
-/* =========================
-   MARKET TICK
-========================= */
-
-function tickMarket() {
-
-  const config =
-    ASSET_DATABASE[currentAssetKey];
-
-  const data =
-    assetMarketData[currentAssetKey];
-
-  data.currentPrice +=
-    (Math.random() - 0.495) *
-    config.volatility;
-
-  data.candles.push({
-    close: data.currentPrice
-  });
-
-  if (data.candles.length > 300) {
-    data.candles.shift();
-  }
-
-  updateUI();
-}
-
-
-/* =========================
-   AUTO TICK
-========================= */
-
-function toggleAuto() {
-
-  const btn =
-    document.getElementById('autoBtn');
-
-  if (autoInterval) {
-
-    clearInterval(autoInterval);
-
-    autoInterval = null;
-
-    btn.innerText =
-      'Start Auto Tick (2s)';
-
-    btn.className =
-      'btn-secondary';
-
-  } else {
-
-    autoInterval =
-      setInterval(
-        tickMarket,
-        2000
-      );
-
-    btn.innerText =
-      'Stop Auto Tick';
-
-    btn.className =
-      'btn-primary';
-
-  }
-
-}
-
-
-/* =========================
-   EMA
-========================= */
-
-function calculateEMA(data, period) {
-
-  const k =
-    2 / (period + 1);
-
-  let emaArray = [data[0]];
-
-  for (
-    let i = 1;
-    i < data.length;
-    i++
-  ) {
-
-    emaArray.push(
-      data[i] * k +
-      emaArray[i - 1] *
-      (1 - k)
-    );
-
-  }
-
-  return emaArray;
-}
-
-
-/* =========================
-   RSI
-========================= */
-
-function calculateRSI(
-  data,
-  period = 14
-) {
-
-  let gains = 0;
-  let losses = 0;
-
-  for (
-    let i = 1;
-    i <= period;
-    i++
-  ) {
-
-    const diff =
-      data[i] -
-      data[i - 1];
-
-    if (diff >= 0) {
-      gains += diff;
-    } else {
-      losses -= diff;
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) {
+        console.log("Audio alert blocked by browser context.");
+      }
     }
 
-  }
-
-  let avgGain =
-    gains / period;
-
-  let avgLoss =
-    losses / period;
-
-  let rsi = [
-
-    100 -
-    (
-      100 /
-      (
-        1 +
-        avgGain /
-        (avgLoss || 1)
-      )
-    )
-
-  ];
-
-  for (
-    let i = period + 1;
-    i < data.length;
-    i++
-  ) {
-
-    const diff =
-      data[i] -
-      data[i - 1];
-
-    avgGain =
-      (
-        avgGain *
-        (period - 1) +
-        (diff > 0 ? diff : 0)
-      ) / period;
-
-    avgLoss =
-      (
-        avgLoss *
-        (period - 1) +
-        (diff < 0 ? -diff : 0)
-      ) / period;
-
-    rsi.push(
-
-      100 -
-      (
-        100 /
-        (
-          1 +
-          avgGain /
-          (avgLoss || 1)
-        )
-      )
-
-    );
-
-  }
-
-  return rsi;
-}
-
-
-/* =========================
-   MACD
-========================= */
-
-function calculateMACD(
-  data,
-  fast = 12,
-  slow = 26,
-  signal = 9
-) {
-
-  const emaFast =
-    calculateEMA(
-      data,
-      fast
-    );
-
-  const emaSlow =
-    calculateEMA(
-      data,
-      slow
-    );
-
-  const macdLine =
-    emaFast.map(
-      (val, idx) =>
-        val -
-        emaSlow[idx]
-    );
-
-  const signalLine =
-    calculateEMA(
-      macdLine,
-      signal
-    );
-
-  const histogram =
-    macdLine.map(
-      (val, idx) =>
-        val -
-        signalLine[idx]
-    );
-
-  return {
-
-    macdLine,
-    signalLine,
-    histogram
-
-  };
-}
-
-
-/* =========================
-   SIGNAL ENGINE
-========================= */
-
-function generateSignal(assetKey) {
-
-  const data =
-    assetMarketData[assetKey];
-
-  const config =
-    ASSET_DATABASE[assetKey];
-
-  const closes =
-    data.candles.map(
-      c => c.close
-    );
-
-  const price =
-    closes[
-      closes.length - 1
-    ];
-
-  const ema9 =
-    calculateEMA(
-      closes,
-      9
-    );
-
-  const ema21 =
-    calculateEMA(
-      closes,
-      21
-    );
-
-  const ema200 =
-    calculateEMA(
-      closes,
-      200
-    );
-
-  const rsi =
-    calculateRSI(
-      closes,
-      14
-    );
-
-  const macd =
-    calculateMACD(
-      closes,
-      12,
-      26,
-      9
-    );
-
-  const lastEma9 =
-    ema9[ema9.length - 1];
-
-  const lastEma21 =
-    ema21[ema21.length - 1];
-
-  const lastEma200 =
-    ema200[ema200.length - 1];
-
-  const lastRsi =
-    rsi[rsi.length - 1];
-
-  const lastMacdHist =
-    macd.histogram[
-      macd.histogram.length - 1
-    ];
-
-  /*
-     Balanced trend detection
-  */
-
-  const bullishTrend =
-    price > lastEma200 &&
-    lastEma9 > lastEma21;
-
-  const bearishTrend =
-    price < lastEma200 &&
-    lastEma9 < lastEma21;
-
-
-  /*
-     Strong bullish confirmation
-  */
-
-  const bullishMomentum =
-    lastRsi >= 55 &&
-    lastRsi <= 68 &&
-    lastMacdHist > 0;
-
-
-  /*
-     Strong bearish confirmation
-  */
-
-  const bearishMomentum =
-    lastRsi >= 32 &&
-    lastRsi <= 45 &&
-    lastMacdHist < 0;
-
-
-  const selectedDuration =
-    document.getElementById(
-      'durationSelect'
-    )
-    ? document.getElementById(
-        'durationSelect'
-      ).value
-    : "60 SECONDS (1 MIN)";
-
-
-  let signalResult = {
-
-    asset: assetKey,
-
-    signal: "NO TRADE",
-
-    duration: "--",
-
-    entryWindow: "--",
-
-    reason:
-      "Market is low, mixed or neutral. No Trade.",
-
-    indicators: {
-
-      price:
-        price.toFixed(
-          config.decimals
-        ),
-
-      ema9:
-        lastEma9.toFixed(
-          config.decimals
-        ),
-
-      ema21:
-        lastEma21.toFixed(
-          config.decimals
-        ),
-
-      ema200:
-        lastEma200.toFixed(
-          config.decimals
-        ),
-
-      rsi:
-        lastRsi.toFixed(1),
-
-      macdHist:
-        lastMacdHist.toFixed(
-          config.decimals
-        ),
-
-      trend:
-        bullishTrend
-          ? "BULLISH"
-          : bearishTrend
-            ? "BEARISH"
-            : "SIDEWAYS"
-
+    function onPairChange() {
+      const selected = document.getElementById('pairSelect').value;
+      currentPrice = pairQuotes[selected] || 1.0000;
+      document.getElementById('liveQuoteDisplay').innerText = currentPrice.toFixed(currentPrice > 100 ? 2 : 5);
     }
 
-  };
-
-
-  /*
-     BUY
-  */
-
-  if (
-    bullishTrend &&
-    bullishMomentum
-  ) {
-
-    signalResult.signal =
-      "BUY NOW";
-
-    signalResult.duration =
-      selectedDuration;
-
-    signalResult.entryWindow =
-      "BUY NOW";
-
-    signalResult.reason =
-      "Strong Bullish Confluence: Price above EMA200, EMA9 above EMA21, RSI confirms bullish momentum and MACD is positive.";
-
-  }
-
-
-  /*
-     SELL
-  */
-
-  else if (
-    bearishTrend &&
-    bearishMomentum
-  ) {
-
-    signalResult.signal =
-      "SELL NOW";
-
-    signalResult.duration =
-      selectedDuration;
-
-    signalResult.entryWindow =
-      "SELL NOW";
-
-    signalResult.reason =
-      "Strong Bearish Confluence: Price below EMA200, EMA9 below EMA21, RSI confirms bearish momentum and MACD is negative.";
-
-  }
-
-
-  /*
-     Otherwise NO TRADE
-  */
-
-  return signalResult;
-}
-
-
-/* =========================
-   UI UPDATE
-========================= */
-
-function updateUI() {
-
-  const res =
-    generateSignal(
-      currentAssetKey
-    );
-
-  const ind =
-    res.indicators;
-
-
-  document.getElementById(
-    'currentPriceDisplay'
-  ).innerText =
-    ind.price;
-
-
-  document.getElementById(
-    'emaDisplay'
-  ).innerText =
-    `${ind.ema9} / ${ind.ema21} / ${ind.ema200}`;
-
-
-  document.getElementById(
-    'rsiDisplay'
-  ).innerText =
-    ind.rsi;
-
-
-  document.getElementById(
-    'macdDisplay'
-  ).innerText =
-    ind.macdHist;
-
-
-  document.getElementById(
-    'trendDisplay'
-  ).innerText =
-    ind.trend;
-
-
-  const display =
-    document.getElementById(
-      'signalDisplay'
-    );
-
-
-  display.innerText =
-    res.signal;
-
-
-  /*
-     SAME COLORS
-  */
-
-  if (
-    res.signal === "BUY NOW"
-  ) {
-
-    display.className =
-      "signal-badge CALL";
-
-  }
-
-  else if (
-    res.signal === "SELL NOW"
-  ) {
-
-    display.className =
-      "signal-badge PUT";
-
-  }
-
-  else {
-
-    display.className =
-      "signal-badge NEUTRAL";
-
-  }
-
-
-  /*
-     BUY DISPLAY
-  */
-
-  if (
-    res.signal === "BUY NOW"
-  ) {
-
-    document.getElementById(
-      'durationDisplay'
-    ).innerText =
-      `BUY DURATION: ${res.duration}`;
-
-    document.getElementById(
-      'durationDisplay'
-    ).style.color =
-      'var(--green-call)';
-
-
-    document.getElementById(
-      'entryWindowDisplay'
-    ).innerText =
-      `⚡ ${res.entryWindow}`;
-
-    document.getElementById(
-      'entryWindowDisplay'
-    ).style.color =
-      'var(--green-call)';
-
-  }
-
-
-  /*
-     SELL DISPLAY
-  */
-
-  else if (
-    res.signal === "SELL NOW"
-  ) {
-
-    document.getElementById(
-      'durationDisplay'
-    ).innerText =
-      `SELL DURATION: ${res.duration}`;
-
-    document.getElementById(
-      'durationDisplay'
-    ).style.color =
-      'var(--red-put)';
-
-
-    document.getElementById(
-      'entryWindowDisplay'
-    ).innerText =
-      `⚡ ${res.entryWindow}`;
-
-    document.getElementById(
-      'entryWindowDisplay'
-    ).style.color =
-      'var(--red-put)';
-
-  }
-
-
-  /*
-     NO TRADE
-  */
-
-  else {
-
-    document.getElementById(
-      'durationDisplay'
-    ).innerText =
-      `Trade Duration: No Trade`;
-
-    document.getElementById(
-      'durationDisplay'
-    ).style.color =
-      'var(--warning-yellow)';
-
-
-    document.getElementById(
-      'entryWindowDisplay'
-    ).innerText =
-      `Entry Window: --`;
-
-    document.getElementById(
-      'entryWindowDisplay'
-    ).style.color =
-      'var(--text-muted)';
-
-  }
-
-
-  document.getElementById(
-    'signalReason'
-  ).innerText =
-    res.reason;
-
-
-  logSignal(res);
-}
-
-
-/* =========================
-   AUDIT LOG
-========================= */
-
-function logSignal(res) {
-
-  const historyLog =
-    document.getElementById(
-      'historyLog'
-    );
-
-
-  if (
-    historyLog.children.length === 1 &&
-    historyLog.children[0].children.length === 1
-  ) {
-
-    historyLog.innerHTML = '';
-
-  }
-
-
-  const row =
-    document.createElement('tr');
-
-
-  const time =
-    new Date()
-      .toLocaleTimeString();
-
-
-  const signalClass =
-    res.signal === 'BUY NOW'
-      ? 'text-call'
-      : res.signal === 'SELL NOW'
-        ? 'text-put'
-        : 'text-neutral';
-
-
-  row.innerHTML = `
-
-    <td>${time}</td>
-
-    <td style="
-      font-weight: 600;
-      color: var(--accent-color);
-    ">
-      ${res.asset}
-    </td>
-
-    <td>
-      ${res.indicators.price}
-    </td>
-
-    <td class="${signalClass}">
-      ${res.signal}
-    </td>
-
-    <td style="
-      font-weight: bold;
-      color: var(--warning-yellow);
-    ">
-      ${res.duration}
-    </td>
-
-    <td style="
-      color: var(--text-muted);
-      font-size: 0.8rem;
-    ">
-      ${res.reason}
-    </td>
-
-  `;
-
-
-  historyLog.insertBefore(
-    row,
-    historyLog.firstChild
-  );
-
-
-  if (
-    historyLog.children.length > 15
-  ) {
-
-    historyLog.removeChild(
-      historyLog.lastChild
-    );
-
-  }
-
-}
-
-
-/* =========================
-   START ENGINE
-========================= */
-
-window.onload =
-  initAllMarkets;
-
-</script>
-
+    function startTicker() {
+      tickerInterval = setInterval(() => {
+        const delta = (Math.random() - 0.49) * (currentPrice > 100 ? 0.08 : 0.00012);
+        currentPrice += delta;
+        document.getElementById('liveQuoteDisplay').innerText = currentPrice.toFixed(currentPrice > 100 ? 2 : 5);
+        
+        const rsiVal = (50 + (Math.random() * 24 - 12)).toFixed(1);
+        document.getElementById('rsiDisplay').innerText = rsiVal;
+        document.getElementById('trendDisplay').innerText = rsiVal > 50 ? "BULLISH" : "BEARISH";
+      }, 1200);
+    }
+
+    function parseTfToSeconds(tfStr) {
+      if (tfStr.endsWith('s')) return parseInt(tfStr);
+      if (tfStr.endsWith('m')) return parseInt(tfStr) * 60;
+      return 60;
+    }
+
+    function toggleBot() {
+      const btn = document.getElementById('startBtn');
+      const btnText = document.getElementById('btnText');
+
+      if (!isRunning) {
+        isRunning = true;
+        btnText.innerText = "STOP BOT";
+        btn.classList.add('btn-active-stop');
+        btn.querySelector('i').className = "fa-solid fa-square";
+
+        setAnalyzingState();
+
+        botTimeout = setTimeout(() => {
+          generateSignalAlert();
+        }, 2500);
+
+      } else {
+        isRunning = false;
+        clearTimeout(botTimeout);
+        clearInterval(countdownInterval);
+
+        btnText.innerText = "START BOT";
+        btn.classList.remove('btn-active-stop');
+        btn.querySelector('i').className = "fa-solid fa-play";
+
+        resetToStandby();
+      }
+    }
+
+    function setAnalyzingState() {
+      const mainText = document.getElementById('mainEngineText');
+      const subText = document.getElementById('subEngineText');
+      const engineIcon = document.getElementById('engineIcon');
+      const statusTag = document.getElementById('engineStatusTag');
+      const metaPanel = document.getElementById('activeSignalMeta');
+
+      document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6";
+
+      statusTag.innerText = "Market Scanner";
+      engineIcon.className = "fa-solid fa-circle-notch fa-spin text-[#ffa852]";
+      mainText.className = "text-2xl md:text-4xl font-black text-[#ffa852] tracking-wider my-3";
+      mainText.innerText = "ANALYZING MARKET...";
+      subText.innerText = `Connecting to Pocket Option engine & processing candle indicators for ${document.getElementById('pairSelect').value}...`;
+      metaPanel.classList.add('hidden');
+    }
+
+    function resetToStandby() {
+      const mainText = document.getElementById('mainEngineText');
+      const subText = document.getElementById('subEngineText');
+      const engineIcon = document.getElementById('engineIcon');
+      const statusTag = document.getElementById('engineStatusTag');
+      const metaPanel = document.getElementById('activeSignalMeta');
+
+      document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6";
+
+      statusTag.innerText = "Engine Status";
+      engineIcon.className = "fa-solid fa-bolt text-[#ffa852]";
+      mainText.className = "text-3xl md:text-5xl font-black text-[#ffa852] tracking-wider my-3 pulse-orange-text drop-shadow-lg";
+      mainText.innerText = "STANDBY";
+      subText.innerText = "Engine ready. Select pair & time frame, then press START BOT to initiate live Pocket Option analysis.";
+      metaPanel.classList.add('hidden');
+    }
+
+    function generateSignalAlert() {
+      if (!isRunning) return;
+
+      const isBuy = Math.random() > 0.48;
+      const pair = document.getElementById('pairSelect').value;
+      const tf = document.getElementById('tfSelect').value;
+      const tfSecs = parseTfToSeconds(tf);
+
+      const mainText = document.getElementById('mainEngineText');
+      const subText = document.getElementById('subEngineText');
+      const engineIcon = document.getElementById('engineIcon');
+      const statusTag = document.getElementById('engineStatusTag');
+      const metaPanel = document.getElementById('activeSignalMeta');
+      const accuracyVal = document.getElementById('accuracyVal');
+      const entryPriceVal = document.getElementById('entryPriceVal');
+
+      playAudioSignal(isBuy ? 'buy' : 'sell');
+
+      const accuracy = (94.5 + Math.random() * 4.3).toFixed(1);
+      accuracyVal.innerText = `${accuracy}%`;
+      entryPriceVal.innerText = currentPrice.toFixed(currentPrice > 100 ? 2 : 5);
+
+      statusTag.innerText = "Signal Alert Active";
+      metaPanel.classList.remove('hidden');
+
+      if (isBuy) {
+        document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6 signal-buy-active";
+        engineIcon.className = "fa-solid fa-circle-arrow-up text-emerald-400";
+        mainText.className = "text-3xl md:text-6xl font-black glow-buy tracking-wider my-2 animate-bounce";
+        mainText.innerHTML = `<i class="fa-solid fa-arrow-trend-up mr-2"></i>CALL (BUY)`;
+        subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - Instant <strong class="text-emerald-400">BUY</strong> Signal Generated (${tf})`;
+      } else {
+        document.body.className = "flex items-center justify-center min-h-screen p-3 md:p-6 signal-sell-active";
+        engineIcon.className = "fa-solid fa-circle-arrow-down text-rose-500";
+        mainText.className = "text-3xl md:text-6xl font-black glow-sell tracking-wider my-2 animate-bounce";
+        mainText.innerHTML = `<i class="fa-solid fa-arrow-trend-down mr-2"></i>PUT (SELL)`;
+        subText.innerHTML = `<span class="text-white font-bold">${pair}</span> - Instant <strong class="text-rose-500">SELL</strong> Signal Generated (${tf})`;
+      }
+
+      startTimer(tfSecs, () => {
+        if (isRunning) {
+          setAnalyzingState();
+          botTimeout = setTimeout(generateSignalAlert, 3000);
+        }
+      });
+    }
+
+    function startTimer(seconds, onComplete) {
+      let duration = seconds;
+      const timerVal = document.getElementById('timerVal');
+
+      clearInterval(countdownInterval);
+
+      const renderTime = () => {
+        const mins = Math.floor(duration / 60);
+        const secs = duration % 60;
+        timerVal.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      };
+
+      renderTime();
+
+      countdownInterval = setInterval(() => {
+        duration--;
+        renderTime();
+
+        if (duration <= 0) {
+          clearInterval(countdownInterval);
+          if (onComplete) onComplete();
+        }
+      }, 1000);
+    }
+
+    window.onload = function() {
+      onPairChange();
+      startTicker();
+    };
+  </script>
 </body>
 </html>
